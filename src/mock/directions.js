@@ -1,24 +1,19 @@
 import { getRandomValue, getRandomInteger } from '../utils';
-import { CITIES, DESCRIPTION } from './const';
-
+import { CITIES, DESCRIPTION, DESTINATION_COUNT } from '../const';
 
 function generateDestination() {
   const city = getRandomValue(CITIES);
-  const maxPictures = 5;
 
   return {
     id: crypto.randomUUID(),
     name: city,
-    description: DESCRIPTION,
-    pictures: Array.from({ length: getRandomInteger(0, maxPictures) }, generatePicture),
+    description: Array.from({length: getRandomInteger(1, 5)}, () => getRandomArrayElement(DESCRIPTION)).join(' '),
+    pictures: Array.from({length: getRandomInteger(1, 5)}, () => ({
+      src: `https://loremflickr.com/248/152?random=${crypto.randomUUID()}`,
+      description: getRandomArrayElement(DESCRIPTION)
+    }))
   };
-
-  function generatePicture() {
-    return {
-      'src': `https://loremflickr.com/248/152?random=${crypto.randomUUID()}`,
-      'description': `${city} description`
-    };
-  }
 }
+const mockDestinations = Array.from({length: DESTINATION_COUNT}, generateDestination);
 
-export { generateDestination };
+export { mockDestinations };

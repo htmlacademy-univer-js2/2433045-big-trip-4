@@ -1,9 +1,9 @@
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 import { formatDateToDateTime } from '../utils';
-import { POINT_EMPTY } from './const';
+import { POINT_EMPTY, POINT_TYPES,CITIES } from './const';
 
 function ModifiedPointPattern(point, pointDestination, pointOffers) {
-  const { basePrice, dateFrom, dateTo, offers, type } = point; 
+  const { basePrice, dateFrom, dateTo, offers, type } = point;
   return(
     `<li class="trip-events__item">
     <form class="event event--edit" action="#" method="post">
@@ -109,34 +109,6 @@ function ModifiedPointPattern(point, pointDestination, pointOffers) {
   );
 }
 
-export default class EditablePointView {
-  constructor({ point = POINT_EMPTY, pointDestination, pointOffers }) {
-    this.point = point;
-    this.destination = pointDestination;
-    this.offers = pointOffers.offers;
-  }
-
-  getTemplate() {
-    return ModifiedPointPattern({
-      point: this.point,
-      pointDestination: this.destination,
-      pointOffers: this.offers
-    });
-  }
-
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
-    
-    return this.element;
-  }
-
-  removeElement() {
-    this.element = null;
-  }
-}
-
 function createOfferTemplate({selectedOffers, pointOffers}) {
   return pointOffers.reduce((result, offer) =>
     `${result}
@@ -155,5 +127,42 @@ function createImageTemplate({destination}) {
   return destination.pictures.reduce((result, picture) => `
     ${result}<img class="event__photo" src="${picture.src}" alt="${picture.description}">
   `, '');
+}
 
+export default class EditablePointView extends AbstractView {
+    #point = null;
+    #destination  = null;
+    #offers  = null;
+    #handleEditSubmit = null;
+    #handleResetClick = null;
+
+  constructor({ point = POINT_EMPTY, pointDestination, pointOffers }) {
+    this.#point = point;
+    this.#destination = pointDestination;
+    this.#offers = pointOffers.offers;
+    this.#handleEditSubmit = onEditSubmit;
+    this.#handleResetClick = onResetClick;
+
+    this.element.querySelector('.point--edit')
+      .addEventListener('submit', this.#editSubmitHandler);
+    this.element.querySelector('.point__reset-btn')
+      .addEventListener('click', this.#resetClickHandler);
+  }
+
+  getTemplate() {
+    return ModifiedPointPattern({
+      point: this.#point,
+      pointDestination: this.#destination,
+      pointOffers: this.#offers
+    });
+  }
+  #editSubmitHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleEditSubmit();
+  };
+
+  #resetClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleResetClick();
+  };
 }

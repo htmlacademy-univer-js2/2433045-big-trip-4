@@ -1,9 +1,8 @@
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 import { formatDateToDateTimeHTML, formatDateToShortDate, formatDateToTime, formatDuration } from '../utils';
 
 function createPointViewTemplate({ point, pointDestination, pointOffers }) {
   const { basePrice, dateFrom, dateTo, offers, isFavorite, type } = point;
-
   return /* html */ `
     <li class="trip-events__item">
       <div class="event">
@@ -41,34 +40,6 @@ function createPointViewTemplate({ point, pointDestination, pointOffers }) {
   `;
 }
 
-export default class PointView {
-  constructor({ point, pointDestination, pointOffers }) {
-    this.point = point;
-    this.destination = pointDestination;
-    this.offers = pointOffers.offers;
-  }
-
-  getTemplate() {
-    return createPointViewTemplate({
-      point: this.point,
-      pointDestination: this.destination,
-      pointOffers: this.offers
-    });
-  }
-
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
-
-    return this.element;
-  }
-
-  removeElement() {
-    this.element = null;
-  }
-}
-
 function createOffersTemplate({ offers, pointOffers }) {
   const selectedOffers = pointOffers.filter((offer) => offers.includes(offer.id));
   return selectedOffers.reduce((result, current) =>
@@ -79,4 +50,33 @@ function createOffersTemplate({ offers, pointOffers }) {
         <span class="event__offer-price">${current.price}</span>
       </li>
     `, '');
+}
+
+export default class PointView extends AbstractView {
+    #point = null;
+    #destination = null;
+    #offers = null;
+    #handleRollupClick = null;
+  constructor({ point, pointDestination, pointOffers, onRollupClick }) {
+    super();
+    this.#point = point;
+    this.#destination = pointDestination;
+    this.#offers = pointOffers.offers;
+    this.#handleRollupClick = onRollupClick;
+
+    this.element.querySelector('.event__rollup-btn')
+      .addEventListener('click', this.#rollupClickHandler);
+  }
+
+  getTemplate() {
+    return createPointViewTemplate({
+      point: this.#point,
+      pointDestination: this.#destination,
+      pointOffers: this.#offers
+    });
+  }
+  #rollupClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleRollupClick();
+  };
 }
