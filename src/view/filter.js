@@ -1,4 +1,4 @@
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 
 function FilterPattern() {
   return(
@@ -49,20 +49,8 @@ function FilterPattern() {
   );
 }
 
-export default class FilterView {
+export default class FilterView extends AbstractView {
   getTemplate() {
     return FilterPattern();
-  }
-
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
-
-    return this.element;
-  }
-
-  removeElement() {
-    this.element = null;
   }
 }

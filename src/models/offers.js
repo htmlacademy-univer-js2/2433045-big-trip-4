@@ -1,22 +1,17 @@
-import { POINT_TYPES } from '../mock/const';
-import { generateOffersByType } from '../mock/offer';
-
 export default class OffersModel {
+  #service = null;
+  #offers = null;
 
-  constructor() {
-    this.offers = POINT_TYPES.map((type) => generateOffersByType(type));
+  constructor(service) {
+    this.#service = service;
+    this.#offers = this.#service.offers();
   }
 
   get() {
-    return this.offers;
+    return this.#offers;
   }
 
   getByType(type) {
-    return this.offers.find((offersList) => offersList.type === type);
+    return this.#offers.find((offer) => offer.type === type);
   }
-
-  getById(type, id) {
-    return this.getByType(type).offers.find((offer) => offer.if === id);
-  }
-
 }
