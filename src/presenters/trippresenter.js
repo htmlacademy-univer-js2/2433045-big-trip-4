@@ -2,6 +2,7 @@ import SortView from '../view/sort.js';
 import ListView from '../view/list.js';
 import EditablePointView from '../view/modpoint.js';
 import PointView from '../view/point.js';
+import NoPointView from '../view/nopoint.js';
 import {render, replace} from '../framework/render.js';
 
 export default class TripEventsPresenter {
@@ -21,6 +22,14 @@ export default class TripEventsPresenter {
 
   init() {
     this.#points = [...this.#pointsModel.points];
+    this.#renderTrip();
+  }
+
+  #renderTrip() {
+    if (this.#points.length === 0) {
+      render(new NoPointView(), this.#container);
+      return;
+    }
 
     render(new SortView(), this.#container);
     render(this.#listComponent, this.#container);

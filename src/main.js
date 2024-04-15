@@ -4,21 +4,23 @@ import OffersModel from './model/offers';
 import PointsModel from './model/points';
 import MockService from './service/mockservice.js';
 import FilterView from './view/filter.js';
+import { generateFilters } from './mock/filter.js';
 import { render } from './framework/render.js';
 
 const destinationsModel = new DestinationsModel();
+const mockService = new MockService();
 const offersModel = new OffersModel(mockService);
 const pointsModel = new PointsModel(mockService);
+const filters = generateFilters(pointsModel.get());
 const filterContainer = document.querySelector('.trip-controls__filters');
 const tripEventsContainer = document.querySelector('.trip-events');
-const mockService = new MockService();
 
 const tripEventsPresenter = new TripEventsPresenter({
-    container: tripEventsContainer,
-    destinationsModel,
-    offersModel,
-    pointsModel
-  });
+  container: tripEventsContainer,
+  destinationsModel,
+  offersModel,
+  pointsModel
+});
 
-render(new FilterView(), filterContainer);
+render(new FilterView({filters}), filterContainer);
 tripEventsPresenter.init();

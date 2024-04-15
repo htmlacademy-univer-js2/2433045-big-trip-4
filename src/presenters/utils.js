@@ -1,35 +1,32 @@
 import dayjs from 'dayjs';
+import duration from 'dayjs/plugin/duration';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import { Duration, MSEC_IN_HOUR, MSEC_IN_DAY } from './const';
 
-function getRandomInteger(a = 0, b = 1) {
-  const lower = Math.ceil(Math.min(a, b));
-  const upper = Math.floor(Math.max(a, b));
-  return Math.floor(lower + Math.random() * (upper - lower + 1));
+dayjs.extend(duration);
+dayjs.extend(relativeTime);
+
+function getRandomInteger (min, max) {
+  const lower = Math.ceil(Math.min(Math.abs(min), Math.abs(max)));
+  const upper = Math.floor(Math.max(Math.abs(min), Math.abs(max)));
+  const result = Math.random() * (upper - lower + 1) + lower;
+
+  return Math.floor(result);
 }
 
-function getRandomValue(array) {
-  return array[0, getRandomInteger(0, array.length - 1)];
+function getRandomValue(items) {
+  return items[getRandomInteger(0, items.length - 1)];
 }
 
-function formatDateToShortDate(date){
-  return dayjs(date).format('MMM DD');
+function firstLetterToUpperCase(type) {
+  return type.charAt(0).toUpperCase() + type.slice(1);
 }
 
-function formatDateToDateTime(date) {
-  return dayjs(date).format('DD/MM/YY HH:mm');
+function firstLetterToLowerCase(type) {
+  return type.toLowerCase();
 }
 
-function formatDateToDateTimeHTML(date) {
-  return dayjs(date).format('YYYY-MM-DDTHH:mm');
-}
-
-function formatDateToTime(date) {
-  return dayjs(date).format('HH:mm');
-}
-
-function formatDuration(date1, date2){
-  const duration = dayjs(date2).subtract(dayjs(date1));
-  return `${duration.minute()}M`;
-}
+let date = dayjs().subtract(getRandomInteger(0, Duration.DAY), 'day').toDate();
 
 function getDate({ next }) {
   const minsGap = getRandomInteger(0, Duration.MIN);
@@ -43,7 +40,48 @@ function getDate({ next }) {
       .add(daysGap, 'day')
       .toDate();
   }
+
   return date;
 }
 
-export { getRandomInteger, getRandomValue, formatDateToShortDate, formatDateToDateTimeHTML, formatDateToDateTime, formatDateToTime, formatDuration, getDate };
+const formatStringToDateTime = (dateF) => dayjs(dateF).format('DD/MM/YY HH:mm');
+const formatStringToShortDate = (dateF) => dayjs(dateF).format('MMM DD');
+const formatStringToTime = (dateF) => dayjs(dateF).format('HH:mm');
+
+const getPointDuration = (dateFrom, dateTo) => {
+  const timeDiff = dayjs(dateTo).diff(dayjs(dateFrom));
+
+  if (timeDiff >= MSEC_IN_DAY) {
+    return dayjs.duration(timeDiff).format('DD[D] HH[H] mm[M]');
+  } else if (timeDiff >= MSEC_IN_HOUR) {
+    return dayjs.duration(timeDiff).format('HH[H] mm[M]');
+  }
+  return dayjs.duration(timeDiff).format('mm[M]');
+};
+
+function isEventFuture(event) {
+  return dayjs().isBefore(event.dateFrom);
+}
+
+function isEventPresent(event) {
+  return dayjs().isAfter(event.dateFrom) && dayjs().isBefore(event.dateTo);
+}
+
+function isEventPast(event) {
+  return dayjs().isAfter(event.dateTo);
+}
+
+
+export {
+  isEventPast,
+  isEventPresent,
+  isEventFuture,
+  getRandomInteger,
+  getRandomValue,
+  getDate,
+  formatStringToDateTime,
+  formatStringToShortDate,
+  formatStringToTime,
+  getPointDuration,
+  firstLetterToUpperCase,
+  firstLetterToLowerCase};
