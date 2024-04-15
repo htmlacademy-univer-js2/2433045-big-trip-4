@@ -1,7 +1,7 @@
 import { getRandomInteger, getRandomValue } from '../utils';
 import { OFFERS_NAMES, POINT_TYPES,Price } from '../const';
 
-const mockOffer=[];
+const mockOffer = [];
 
 function generateOffer(type) {
   return {
