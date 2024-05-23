@@ -16,7 +16,7 @@ const filterContainer = document.querySelector('.trip-controls__filters');
 const tripEventsContainer = document.querySelector('.trip-events');
 
 const tripEventsPresenter = new TripEventsPresenter({
-  container: tripEventsContainer,
+  tripContainer: tripEventsContainer,
   destinationsModel,
   offersModel,
   pointsModel

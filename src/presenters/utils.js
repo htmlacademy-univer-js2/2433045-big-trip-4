@@ -47,7 +47,6 @@ function getDate({ next }) {
 const formatStringToDateTime = (dateF) => dayjs(dateF).format('DD/MM/YY HH:mm');
 const formatStringToShortDate = (dateF) => dayjs(dateF).format('MMM DD');
 const formatStringToTime = (dateF) => dayjs(dateF).format('HH:mm');
-
 const getPointDuration = (dateFrom, dateTo) => {
   const timeDiff = dayjs(dateTo).diff(dayjs(dateFrom));
 
@@ -71,6 +70,9 @@ function isEventPast(event) {
   return dayjs().isAfter(event.dateTo);
 }
 
+function updateItem(items, update) {
+  return items.map((item) => item.id === update.id ? update : item);
+}
 
 export {
   isEventPast,
@@ -84,4 +86,4 @@ export {
   formatStringToTime,
   getPointDuration,
   firstLetterToUpperCase,
-  firstLetterToLowerCase};
+  firstLetterToLowerCase,updateItem};

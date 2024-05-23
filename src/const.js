@@ -28,6 +28,11 @@ const FilterType = {
   PAST: 'past',
 };
 
+const Mode = {
+  DEFAULT: 'DEFAULT',
+  EDITING: 'EDITING',
+};
+
 const MSEC_IN_SEC = 1000;
 const SEC_IN_MIN = 60;
 const MIN_IN_HOUR = 60;
@@ -40,4 +45,4 @@ const Duration = {
   DAY: 5,
   MIN: 59
 };
-export { FilterType, CITIES, DESCRIPTION, OFFERS_NAMES, POINT_TYPES,EVENT_COUNT, Price, POINT_EMPTY, DESTINATION_COUNT, Duration, MSEC_IN_HOUR, MSEC_IN_DAY};
+export { Mode,FilterType, CITIES, DESCRIPTION, OFFERS_NAMES, POINT_TYPES,EVENT_COUNT, Price, POINT_EMPTY, DESTINATION_COUNT, Duration, MSEC_IN_HOUR, MSEC_IN_DAY};
