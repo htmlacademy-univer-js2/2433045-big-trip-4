@@ -111,12 +111,12 @@ export default class EditablePointView extends  AbstractStatefulView {
   #datepickerFrom = null;
   #datepickerTo = null;
 
-  constructor({point = POINT_EMPTY, pointDestination, pointOffers, onEditSubmit, onResetClick}) {
+  constructor({point = POINT_EMPTY, pointDestination, pointOffers, onEditSubmit, onRollupClick}) {
     super();
     this.#pointDestination = pointDestination;
     this.#pointOffers = pointOffers;
     this.#onEditSubmit = onEditSubmit;
-    this.#onRollupClick = onResetClick;
+    this.#onRollupClick = onRollupClick;
 
     this._setState(EditablePointView.parseEventToState(point));
     this._restoreHandlers();
@@ -136,6 +136,19 @@ export default class EditablePointView extends  AbstractStatefulView {
     );
   }
 
+  removeElement() {
+    super.removeElement();
+
+    if (this.#datepickerFrom) {
+      this.#datepickerFrom.destroy();
+      this.#datepickerFrom = null;
+    }
+
+    if (this.#datepickerTo) {
+      this.#datepickerTo.destroy();
+      this.#datepickerTo = null;
+    }
+  }
   _restoreHandlers() {
     this.element.querySelector('.event--edit')
       .addEventListener('submit', this.#editSubmitHandler);
@@ -149,7 +162,54 @@ export default class EditablePointView extends  AbstractStatefulView {
       .addEventListener('change', this.#destinationChangeHandler);
     this.element.querySelector('.event__input--price')
       .addEventListener('change', this.#priceChangeHandler);
-  }
+    this.#setDatepickers();
+    }
+
+  #dateFromCloseHandler = ([userDate]) => {
+    this._setState({
+      ...this._state,
+      dateFrom: userDate});
+      this.#datepickerTo.set('minDate', this._state.dateFrom);
+    };
+
+    #dateToCloseHandler = ([userDate]) => {
+      this._setState({
+      ...this._state,
+      dateTo: userDate});
+      this.#datepickerFrom.set('maxDate', this._state.dateTo);
+    };
+
+    #setDatepickers() {
+      const [dateFromElement, dateToElement] = this.element.querySelectorAll('.event__input--time');
+      const commonConfig = {
+        dateFormat: 'd/m/y H:i',
+        enableTime: true,
+        locale: {
+          firstDayOfWeek: 1,
+        },
+        'time_24hr': true
+      };
+
+      this.#datepickerFrom = flatpickr(
+        dateFromElement,
+        {
+          ...commonConfig,
+          defaultDate: this._state.dateFrom,
+          onClose: this.#dateFromCloseHandler,
+          maxDate: this._state.dateTo,
+        },
+      );
+
+      this.#datepickerTo = flatpickr(
+        dateToElement,
+        {
+          ...commonConfig,
+          defaultDate: this._state.dateTo,
+          onClose: this.#dateToCloseHandler,
+          minDate: this._state.dateFrom,
+        },
+      );
+    }
 
   #editSubmitHandler = (evt) => {
     evt.preventDefault();
