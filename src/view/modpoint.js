@@ -101,15 +101,15 @@ export default class EditablePointView extends AbstractView {
   #point = null;
   #pointDestination = null;
   #pointOffers = null;
-  #handleEditSubmit = null;
-  #handleResetClick = null;
+  #onEditSubmit = null;
+  #onRollupClick = null;
   constructor({point = POINT_EMPTY, pointDestination, pointOffers, onEditSubmit, onResetClick}) {
     super();
     this.#point = point;
     this.#pointDestination = pointDestination;
     this.#pointOffers = pointOffers;
-    this.#handleEditSubmit = onEditSubmit;
-    this.#handleResetClick = onResetClick;
+    this.#onEditSubmit = onEditSubmit;
+    this.#onRollupClick = onResetClick;
 
     this.element.querySelector('.event--edit')
       .addEventListener('submit', this.#editSubmitHandler);
@@ -127,11 +127,11 @@ export default class EditablePointView extends AbstractView {
 
   #editSubmitHandler = (evt) => {
     evt.preventDefault();
-    this.#handleEditSubmit();
+    this.#onEditSubmit(this.#point);
   };
 
   #resetClickHandler = (evt) => {
     evt.preventDefault();
-    this.#handleResetClick();
+    this.#onRollupClick();
   };
 }

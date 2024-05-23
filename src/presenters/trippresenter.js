@@ -1,23 +1,27 @@
 import SortView from '../view/sort.js';
 import ListView from '../view/list.js';
-import EditablePointView from '../view/modpoint.js';
-import PointView from '../view/point.js';
+import PointPresenter from './pointpresenter.js';
 import NoPointView from '../view/nopoint.js';
-import {render, replace} from '../framework/render.js';
+import { updateItem } from '../utils.js';
+import { render, RenderPosition } from '../framework/render.js';;
 
-export default class TripEventsPresenter {
+export default class TripPointsPresenter {
   #listComponent = new ListView();
+  #sortComponent = new SortView();
+  #noPointComponent = new NoPointView();
+  #tripContainer = null;
   #points = null;
   #destinationsModel = null;
   #offersModel = null;
   #pointsModel = null;
-  #container = null;
+  #pointPresenters = new Map();
 
-  constructor({ destinationsModel, offersModel, pointsModel, container }) {
+  constructor({tripContainer, destinationsModel, offersModel, pointsModel}) {
+    this.#tripContainer = tripContainer;
     this.#destinationsModel = destinationsModel;
     this.#offersModel = offersModel;
     this.#pointsModel = pointsModel;
-    this.#container = container;
+    this.#tripContainer = tripContainer;
   }
 
   init() {
@@ -27,59 +31,52 @@ export default class TripEventsPresenter {
 
   #renderTrip() {
     if (this.#points.length === 0) {
-      render(new NoPointView(), this.#container);
+      this.#renderNoPoints();
       return;
     }
 
-    render(new SortView(), this.#container);
-    render(this.#listComponent, this.#container);
+    this.#renderSort();
+    this.#renderPointContainer();
+    this.#renderPoints();
+  }
 
+  #renderPointContainer() {
+    render(this.#listComponent, this.#tripContainer);
+  }
+
+  #renderSort() {
+    render(this.#sortComponent, this.#tripContainer, RenderPosition.AFTERBEGIN);
+  }
+
+  #renderNoPoints() {
+    render(this.#noPointComponent, this.#tripContainer, RenderPosition.AFTERBEGIN);
+  }
+
+  #handleModeChange = () => {
+    this.#pointPresenters.forEach((presenter) => presenter.resetView());
+  };
+
+  #renderPoints() {
     for (let i = 0; i < this.#points.length; i++) {
       this.#renderPoint(this.#points[i]);
     }
   }
 
+  #handleEventChange = (updatedEvent) => {
+    this.#points = updateItem(this.#points, updatedEvent);
+    this.#pointPresenters.get(updatedEvent.id).init(updatedEvent);
+  };
+
   #renderPoint(point) {
-    const escKeyDownHandler = (evt) => {
-      if (evt.key === 'Escape') {
-        evt.preventDefault();
-        replaceEditorToEvent();
-        document.removeEventListener('keydown', escKeyDownHandler);
-      }
-    };
-
-    const pointComponent = new PointView({
-      point,
-      destination: this.#destinationsModel.getById(point.destination),
-      offers: this.#pointsModel.getByType(point.type),
-      onRollupClick: () => {
-        replaceEventToEditor();
-        document.addEventListener('keydown', escKeyDownHandler);
-      }
+    const pointPresenter = new PointPresenter({
+      eventListContainer: this.#listComponent,
+      destinationsModel: this.#destinationsModel,
+      offersModel: this.#offersModel,
+      onDataChange: this.#handleEventChange,
+      onModeChange: this.#handleModeChange,
     });
 
-    const modPointComponent = new EditablePointView({
-      point,
-      destination: this.#destinationsModel.getById(point.destination),
-      offers: this.#offersModel.getByType(point.type),
-      onEditSubmit: () => {
-        replaceEditorToEvent();
-        document.removeEventListener('keydown', escKeyDownHandler);
-      },
-      onResetClick: () => {
-        replaceEditorToEvent();
-        document.removeEventListener('keydown', escKeyDownHandler);
-      }
-    });
-
-    function replaceEventToEditor() {
-      replace(modPointComponent, pointComponent);
-    }
-
-    function replaceEditorToEvent() {
-      replace(pointComponent, modPointComponent);
-    }
-
-    render(pointComponent, this.#listComponent.element);
+    pointPresenter.init(point);
+    this.#pointPresenters.set(point.id, pointPresenter);
   }
 }
