@@ -3,7 +3,7 @@ import ListView from '../view/list.js';
 import PointPresenter from './pointpresenter.js';
 import NoPointView from '../view/nopoint.js';
 import { updateItem } from '../utils.js';
-import { render, RenderPosition } from '../framework/render.js';;
+import { render, RenderPosition } from '../framework/render.js';
 
 export default class TripPointsPresenter {
   #listComponent = new ListView();
