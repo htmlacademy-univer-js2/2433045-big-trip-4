@@ -1,4 +1,4 @@
-import AbstractView from '../framework/view/abstract-view.js';
+import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { POINT_TYPES, CITIES, POINT_EMPTY } from '../const.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
@@ -31,7 +31,7 @@ function createPointOfferElement(offers, checkedOffers) {
   return `<div class="event__available-offers">${offerItem}</div>`;
 }
 
-function createEventPhotoElement(pictures) {
+function createPointPhotoElement(pictures) {
   return `
     <div class="event__photos-container">
       <div class="event__photos-tape">
@@ -40,8 +40,11 @@ function createEventPhotoElement(pictures) {
     </div>`;
 }
 
-function createEventEditElement({point, destination, eventOffers}) {
+function createModPointElement({point, destination, eventOffers}) {
   const { type, offers, dateFrom, dateTo, price } = point;
+  const currentOffers = pointOffers.find((offer) => offer.type === type);
+  const currentDestination = pointDestination.find((destination) => destination.id === point.destination);
+  const nameDestination = (currentDestination) ? currentDestination.name : '';
   return `
     <li class="trip-events__item">
       <form class="event event--edit" action="#" method="post">
@@ -63,7 +66,7 @@ function createEventEditElement({point, destination, eventOffers}) {
             <label class="event__label  event__type-output" for="event-destination-1">
               ${type}
             </label>
-            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destination.name}" list="destination-list-1">
+            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${nameDestination}" list="destination-list-1">
             ${createPointDestinationListElement()}
           </div>
           <div class="event__field-group  event__field-group--time">
@@ -85,22 +88,22 @@ function createEventEditElement({point, destination, eventOffers}) {
           <button class="event__rollup-btn" type="button">
         </header>
         <section class="event__details">
-          <section class="event__section  event__section--offers">
+        ${(currentOffers.offers.length !== 0) ? `<section class="event__section  event__section--offers">
             <h3 class="event__section-title  event__section-title--offers">Offers</h3>
-            ${createPointOfferElement(eventOffers.offers, offers)}
+            ${createPointOfferElement(currentOffers.offers, offers)}
+          </section>` : ''}
           </section>
-          <section class="event__section  event__section--destination">
+           ${(currentDestination) ? `<section class="event__section  event__section--destination">
             <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-            <p class="event__destination-description">${destination.description}</p>
-            ${createEventPhotoElement(destination.pictures)}
-          </section>
+            <p class="event__destination-description">${currentDestination.description}</p>
+            ${createPointPhotoElement(currentDestination.pictures)}
+          </section>` : ''}
         </section>
       </form>
     </li>`;
 }
 
-export default class EditablePointView extends AbstractView {
-  #point = null;
+export default class EditablePointView extends  AbstractStatefulView {
   #pointDestination = null;
   #pointOffers = null;
   #onEditSubmit = null;
@@ -110,7 +113,6 @@ export default class EditablePointView extends AbstractView {
 
   constructor({point = POINT_EMPTY, pointDestination, pointOffers, onEditSubmit, onResetClick}) {
     super();
-    this.#point = point;
     this.#pointDestination = pointDestination;
     this.#pointOffers = pointOffers;
     this.#onEditSubmit = onEditSubmit;
@@ -121,29 +123,16 @@ export default class EditablePointView extends AbstractView {
   }
 
   get template() {
-    return createEventEditElement({
-      point: this.#point,
+    return createModPointElement({
+      point: this._state,
       pointDestination: this.#pointDestination,
       pointOffers: this.#pointOffers
     });
   }
 
-  removeElement() {
-    super.removeElement();
-
-    if (this.#datepickerFrom) {
-      this.#datepickerFrom.destroy();
-      this.#datepickerFrom = null;
-    }
-
-    if (this.#datepickerTo) {
-      this.#datepickerTo.destroy();
-      this.#datepickerTo = null;
-    }
-  }
   reset(event) {
     this.updateElement(
-      EditablePointView.parseEventToState(event),
+      EventEditView.parseEventToState(event),
     );
   }
 
@@ -160,58 +149,6 @@ export default class EditablePointView extends AbstractView {
       .addEventListener('change', this.#destinationChangeHandler);
     this.element.querySelector('.event__input--price')
       .addEventListener('change', this.#priceChangeHandler);
-
-    this.#setDatepickers();
-  }
-
-  #dateFromCloseHandler = ([userDate]) => {
-    this._setState({
-      ...this._state,
-      dateFrom: userDate
-    });
-
-    this.#datepickerTo.set('minDate', this._state.dateFrom);
-  };
-
-  #dateToCloseHandler = ([userDate]) => {
-    this._setState({
-      ...this._state,
-      dateTo: userDate
-    });
-
-    this.#datepickerFrom.set('maxDate', this._state.dateTo);
-  };
-
-  #setDatepickers() {
-    const [dateFromElement, dateToElement] = this.element.querySelectorAll('.event__input--time');
-    const commonConfig = {
-      dateFormat: 'd/m/y H:i',
-      enableTime: true,
-      locale: {
-        firstDayOfWeek: 1,
-      },
-      'time_24hr': true
-    };
-
-    this.#datepickerFrom = flatpickr(
-      dateFromElement,
-      {
-        ...commonConfig,
-        defaultDate: this._state.dateFrom,
-        onClose: this.#dateFromCloseHandler,
-        maxDate: this._state.dateTo,
-      },
-    );
-
-    this.#datepickerTo = flatpickr(
-      dateToElement,
-      {
-        ...commonConfig,
-        defaultDate: this._state.dateTo,
-        onClose: this.#dateToCloseHandler,
-        minDate: this._state.dateFrom,
-      },
-    );
   }
 
   #editSubmitHandler = (evt) => {
