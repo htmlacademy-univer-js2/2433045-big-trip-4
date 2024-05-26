@@ -1,6 +1,7 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
-import { POINT_TYPES, CITIES, POINT_EMPTY } from '../const.js';
+import { POINT_TYPES, CITIES, POINT_EMPTY,EditType, ButtonLabel } from '../const.js';
 import flatpickr from 'flatpickr';
+import he from 'he';
 import 'flatpickr/dist/flatpickr.min.css';
 import { firstLetterToUpperCase, firstLetterToLowerCase,formatStringToDateTime } from '../utils.js';
 
@@ -40,7 +41,15 @@ function createPointPhotoElement(pictures) {
     </div>`;
 }
 
-function createModPointElement({point, destination, eventOffers}) {
+
+function createResetButtonTemplate(pointType) {
+  const label = pointType === EditType.CREATING
+  ? ButtonLabel.CANCEL_DEFAULT
+  : ButtonLabel.DELETE_DEFAULT;
+  return `<button class="event__reset-btn" type="reset">${label}</button>`;
+}
+
+function createModPointElement({point, pointDestination, pointOffers, pointType}) {
   const { type, offers, dateFrom, dateTo, price } = point;
   const currentOffers = pointOffers.find((offer) => offer.type === type);
   const currentDestination = pointDestination.find((destination) => destination.id === point.destination);
@@ -66,26 +75,26 @@ function createModPointElement({point, destination, eventOffers}) {
             <label class="event__label  event__type-output" for="event-destination-1">
               ${type}
             </label>
-            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${nameDestination}" list="destination-list-1">
+            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${he.encode(nameDestination)}" list="destination-list-1">
             ${createPointDestinationListElement()}
           </div>
           <div class="event__field-group  event__field-group--time">
             <label class="visually-hidden" for="event-start-time-1">From</label>
-            <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${formatStringToDateTime(dateFrom)}">
+            <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${dateFrom ? formatStringToDateTime(dateFrom) : ''}">
             &mdash;
             <label class="visually-hidden" for="event-end-time-1">To</label>
-            <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${formatStringToDateTime(dateTo)}">
+            <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${dateTo ? formatStringToDateTime(dateTo) : ''}">
           </div>
           <div class="event__field-group  event__field-group--price">
             <label class="event__label" for="event-price-1">
               <span class="visually-hidden">Price</span>
               &euro;
             </label>
-            <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${price}">
+            <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${he.encode(price.toString())}">
           </div>
-          <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-          <button class="event__reset-btn" type="reset">Delete</button>
-          <button class="event__rollup-btn" type="button">
+          <button class="event__save-btn  btn  btn--blue" type="submit">${ButtonLabel.SAVE_DEFAULT}</button>
+          ${createResetButtonTemplate(pointType)}
+          ${(pointType === EditType.EDITING) ? '<button class="event__rollup-btn" type="button">' : ''}
         </header>
         <section class="event__details">
         ${(currentOffers.offers.length !== 0) ? `<section class="event__section  event__section--offers">
@@ -107,18 +116,22 @@ export default class EditablePointView extends  AbstractStatefulView {
   #pointDestination = null;
   #pointOffers = null;
   #onEditSubmit = null;
+  #onEditReset = null;
   #onRollupClick = null;
   #datepickerFrom = null;
   #datepickerTo = null;
+  #pointType;
 
-  constructor({point = POINT_EMPTY, pointDestination, pointOffers, onEditSubmit, onRollupClick}) {
+  constructor({point = POINT_EMPTY, pointDestination, pointOffers, onEditSubmit, onRollupClick, onEditReset,pointType = EditType.EDITING}) {
     super();
     this.#pointDestination = pointDestination;
     this.#pointOffers = pointOffers;
     this.#onEditSubmit = onEditSubmit;
+    this.#onEditReset = onEditReset;
     this.#onRollupClick = onRollupClick;
+    this.#pointType = pointType;
 
-    this._setState(EditablePointView.parseEventToState(point));
+    this._setState(EditablePointView.parsePointToState(point));
     this._restoreHandlers();
   }
 
@@ -126,13 +139,14 @@ export default class EditablePointView extends  AbstractStatefulView {
     return createModPointElement({
       point: this._state,
       pointDestination: this.#pointDestination,
-      pointOffers: this.#pointOffers
+      pointOffers: this.#pointOffers,
+      pointType: this.#pointType
     });
   }
 
-  reset(event) {
+  reset(point) {
     this.updateElement(
-      EventEditView.parseEventToState(event),
+      EditablePointView.parsePointToState(point),
     );
   }
 
@@ -152,8 +166,16 @@ export default class EditablePointView extends  AbstractStatefulView {
   _restoreHandlers() {
     this.element.querySelector('.event--edit')
       .addEventListener('submit', this.#editSubmitHandler);
-    this.element.querySelector('.event__rollup-btn')
-      .addEventListener('click', this.#rollupClickHandler);
+      if (this.#pointType === EditType.EDITING) {
+        this.element.querySelector('.event__rollup-btn')
+          .addEventListener('click', this.#rollupClickHandler);
+        this.element.querySelector('.event--edit')
+          .addEventListener('reset', this.#editResetHandler);
+      }
+      if (this.#pointType === EditType.CREATING) {
+        this.element.querySelector('.event__reset-btn')
+          .addEventListener('click', this.#editResetHandler);
+      }
     this.element.querySelector('.event__type-group')
       .addEventListener('change', this.#typeChangeHandler);
     this.element.querySelector('.event__available-offers')
@@ -163,68 +185,71 @@ export default class EditablePointView extends  AbstractStatefulView {
     this.element.querySelector('.event__input--price')
       .addEventListener('change', this.#priceChangeHandler);
     this.#setDatepickers();
-    }
+  }
 
   #dateFromCloseHandler = ([userDate]) => {
     this._setState({
       ...this._state,
       dateFrom: userDate});
       this.#datepickerTo.set('minDate', this._state.dateFrom);
-    };
+  };
 
-    #dateToCloseHandler = ([userDate]) => {
-      this._setState({
+  #dateToCloseHandler = ([userDate]) => {
+    this._setState({
       ...this._state,
       dateTo: userDate});
       this.#datepickerFrom.set('maxDate', this._state.dateTo);
+  };
+
+  #setDatepickers() {
+    const [dateFromElement, dateToElement] = this.element.querySelectorAll('.event__input--time');
+    const commonConfig = {
+      dateFormat: 'd/m/y H:i',
+      enableTime: true,
+      locale: {
+        firstDayOfWeek: 1,
+      },
+      'time_24hr': true
     };
 
-    #setDatepickers() {
-      const [dateFromElement, dateToElement] = this.element.querySelectorAll('.event__input--time');
-      const commonConfig = {
-        dateFormat: 'd/m/y H:i',
-        enableTime: true,
-        locale: {
-          firstDayOfWeek: 1,
-        },
-        'time_24hr': true
-      };
+    this.#datepickerFrom = flatpickr(
+      dateFromElement,
+      {
+        ...commonConfig,
+        defaultDate: this._state.dateFrom,
+        onClose: this.#dateFromCloseHandler,
+        maxDate: this._state.dateTo,
+      },
+    );
 
-      this.#datepickerFrom = flatpickr(
-        dateFromElement,
-        {
-          ...commonConfig,
-          defaultDate: this._state.dateFrom,
-          onClose: this.#dateFromCloseHandler,
-          maxDate: this._state.dateTo,
-        },
-      );
-
-      this.#datepickerTo = flatpickr(
-        dateToElement,
-        {
-          ...commonConfig,
-          defaultDate: this._state.dateTo,
-          onClose: this.#dateToCloseHandler,
-          minDate: this._state.dateFrom,
-        },
-      );
-    }
+    this.#datepickerTo = flatpickr(
+      dateToElement,
+      {
+        ...commonConfig,
+        defaultDate: this._state.dateTo,
+        onClose: this.#dateToCloseHandler,
+        minDate: this._state.dateFrom,
+      },
+    );
+  }
 
   #editSubmitHandler = (evt) => {
     evt.preventDefault();
     this.#onEditSubmit(EventEditView.parseStateToEvent(this._state));
   };
+
   #rollupClickHandler = (evt) => {
     evt.preventDefault();
     this.#onRollupClick();
   };
+
   #typeChangeHandler = (evt) => {
     this.updateElement({
       type: evt.target.value,
       offers: [],
     });
   };
+
   #offerChangeHandler = () => {
     const checkedBoxes = Array.from(this.element.querySelectorAll('.event__offer-checkbox:checked'));
     this._setState({
@@ -232,22 +257,33 @@ export default class EditablePointView extends  AbstractStatefulView {
       offers: checkedBoxes.map((element) => element.id),
     });
   };
+
   #destinationChangeHandler = (evt) => {
     const selectedDestination = this.#pointDestination.find((destination) => destination.name === evt.target.value);
     this.updateElement({
       destination: (selectedDestination) ? selectedDestination.id : null,
     });
   };
+
   #priceChangeHandler = (evt) => {
+    if (isNaN(Number(evt.target.value))) {
+      return this._state;
+    }
     this._setState({
       ...this._state,
       price: evt.target.value,
     });
   };
-  static parseEventToState(event) {
-    return {...event};
+
+  #editResetHandler = (evt) => {
+    evt.preventDefault();
+    this.#onEditReset(EventEditView.parseStateToEvent(this._state));
+  };
+
+  static parsePointToState(point) {
+    return {...point};
   }
-  static parseStateToEvent(state) {
+  static parseStateToPoint(state) {
     return {...state};
   }
 }
