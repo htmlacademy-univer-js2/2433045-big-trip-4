@@ -1,4 +1,3 @@
-const CITIES = ['Moscow','Saint Petersburg','Novosibirsk','Yekaterinburg','Kazan','Nizhny Novgorod','Chelyabinsk','Krasnoyarsk','Samara','Ufa'];
 const TYPES = ['taxi','bus','train','ship','drive','flight','check-in','sightseeing','restaurant'];
 const DEFAULT_TYPE = 'flight';
 
@@ -51,6 +50,8 @@ const UpdateType = {
 const Method = {
   GET: 'GET',
   PUT: 'PUT',
+  POST: 'POST',
+  DELETE: 'DELETE',
 };
 
 const MSEC_IN_SEC = 1000;
@@ -68,7 +69,6 @@ export {
   UpdateType,
   Mode,
   FilterType,
-  CITIES,
   TYPES,
   POINT_EMPTY,
   MSEC_IN_HOUR,

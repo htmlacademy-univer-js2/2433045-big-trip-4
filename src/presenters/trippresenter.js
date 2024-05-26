@@ -42,7 +42,7 @@ export default class TripPointsPresenter {
 
     this.#filterModel.addObserver(this.#handleModelPoint);
     this.#pointsModel.addObserver(this.#handleModelPoint);
-  }
+  };
 
   get points() {
     this.#filterType = this.#filterModel.filter;
@@ -56,17 +56,17 @@ export default class TripPointsPresenter {
         return filteredPoints.sort(sortByPrice);
     }
     return filteredPoints;
-  }
+  };
 
   init() {
     this.#renderTrip();
-  }
+  };
 
   createPoint() {
     this.#currentSortType = SortType.DAY;
     this.#filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
     this.#newPointPresenter.init();
-  }
+  };
 
   #renderTrip() {
     if (this.#isLoading) {
@@ -87,11 +87,11 @@ export default class TripPointsPresenter {
     this.#renderSort();
     this.#renderPointContainer();
     this.#renderPoints();
-  }
+  };
 
   #renderPointContainer() {
     render(this.#listComponent, this.#tripContainer);
-  }
+  };
 
   #clearTrip({ resetSortType = false} = {}) {
     this.#newPointPresenter.destroy();
@@ -106,7 +106,7 @@ export default class TripPointsPresenter {
     if (resetSortType) {
       this.#currentSortType = SortType.DAY;
     }
-  }
+  };
 
   #handleSortTypeChange = (sortType) => {
     if (this.#currentSortType === sortType) {
@@ -116,7 +116,7 @@ export default class TripPointsPresenter {
     this.#currentSortType = sortType;
     this.#clearTrip();
     this.#renderTrip();
-  }
+  };
 
   #renderSort() {
     this.#sortComponent = new SortView({
@@ -125,7 +125,7 @@ export default class TripPointsPresenter {
     });
 
     render(this.#sortComponent, this.#tripContainer, RenderPosition.AFTERBEGIN);
-  }
+  };
 
   #renderMessage({isLoading = false, isLoadingError = false} = {}) {
     this.#noPointComponent = new MessageView({
@@ -135,7 +135,7 @@ export default class TripPointsPresenter {
     });
 
     render(this.#noPointComponent, this.#tripContainer, RenderPosition.AFTERBEGIN);
-  }
+  };
 
   #handleViewAction = (actionType, updateType, update) => {
     switch (actionType) {
@@ -174,16 +174,16 @@ export default class TripPointsPresenter {
         this.#renderTrip();
         break;
     }
-  }
+  };
 
   #handleModeChange = () => {
     this.#newPointPresenter.destroy();
     this.#pointPresenters.forEach((presenter) => presenter.resetView());
-  }
+  };
 
   #renderPoints() {
     this.points.forEach((point) => this.#renderPoint(point));
-  }
+  };
 
   #renderPoint(point) {
     const pointPresenter = new PointPresenter({
@@ -197,4 +197,4 @@ export default class TripPointsPresenter {
     pointPresenter.init(point);
     this.#pointPresenters.set(point.id, pointPresenter);
   }
-}
+};

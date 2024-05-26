@@ -70,4 +70,25 @@ export default class NewPointPresenter {
       this.destroy();
     }
   };
+
+    async addPoint(update) {
+        const response = await this._load({
+            url: 'points',
+            method: Method.POST,
+            body: JSON.stringify(adaptToServer(update)),
+            headers: new Headers({'Content-Type': 'application/json'}),
+        });
+
+        const parsedResponse = await ApiService.parseResponse(response);
+        return parsedResponse;
+  }
+
+  async deleteEvent(update) {
+    const response = await this._load({
+      url: `points/${update.id}`,
+      method: Method.DELETE,
+    });
+
+    return response;
+  }
 }

@@ -2,7 +2,7 @@ export default class DestinationsModel {
   #apiService = null;
   #destinations = null;
 
-  constructor(eventsApiService) {
+  constructor(pointApiService) {
     this.#apiService = pointApiService;
   }
 
