@@ -1,5 +1,5 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
-import { POINT_TYPES, CITIES, POINT_EMPTY,EditType, ButtonLabel } from '../const.js';
+import { POINT_TYPES, POINT_EMPTY,EditType, ButtonLabel } from '../const.js';
 import flatpickr from 'flatpickr';
 import he from 'he';
 import 'flatpickr/dist/flatpickr.min.css';
@@ -12,10 +12,10 @@ function createPointTypesListElement(currentType) {
       <label class="event__type-label  event__type-label--${type}" for="event-type-${type}-1">${firstLetterToUpperCase(type)}</label>
     </div>`).join('');
 }
-function createPointDestinationListElement() {
+function createPointDestinationListElement(pointDestination) {
   return `
     <datalist id="destination-list-1">
-      ${CITIES.map((city) => `<option value="${city}"></option>`).join('')}
+      ${pointDestination.map((destination) => `<option value="${destination.name}"></option>`).join('')}
     </datalist>`;
 }
 
@@ -76,7 +76,7 @@ function createModPointElement({point, pointDestination, pointOffers, pointType}
               ${type}
             </label>
             <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${he.encode(nameDestination)}" list="destination-list-1">
-            ${createPointDestinationListElement()}
+            ${createPointDestinationListElement(pointDestination)}
           </div>
           <div class="event__field-group  event__field-group--time">
             <label class="visually-hidden" for="event-start-time-1">From</label>
@@ -166,25 +166,25 @@ export default class EditablePointView extends AbstractStatefulView {
 
   _restoreHandlers() {
     this.element.querySelector('.event--edit')
-    .addEventListener('submit', this.#editSubmitHandler);
+      .addEventListener('submit', this.#editSubmitHandler);
     if (this.#pointType === EditType.EDITING) {
       this.element.querySelector('.event__rollup-btn')
-      .addEventListener('click', this.#rollupClickHandler);
+        .addEventListener('click', this.#rollupClickHandler);
       this.element.querySelector('.event--edit')
-      .addEventListener('reset', this.#editResetHandler);
+        .addEventListener('reset', this.#editResetHandler);
     }
     if (this.#pointType === EditType.CREATING) {
       this.element.querySelector('.event__reset-btn')
-      .addEventListener('click', this.#editResetHandler);
+        .addEventListener('click', this.#editResetHandler);
     }
     this.element.querySelector('.event__type-group')
-    .addEventListener('change', this.#typeChangeHandler);
+      .addEventListener('change', this.#typeChangeHandler);
     this.element.querySelector('.event__available-offers')
-    ?.addEventListener('change', this.#offerChangeHandler);
+      ?.addEventListener('change', this.#offerChangeHandler);
     this.element.querySelector('.event__input--destination')
-    .addEventListener('change', this.#destinationChangeHandler);
+      .addEventListener('change', this.#destinationChangeHandler);
     this.element.querySelector('.event__input--price')
-    .addEventListener('change', this.#priceChangeHandler);
+      .addEventListener('change', this.#priceChangeHandler);
     this.#setDatepickers();
   }
 
@@ -192,14 +192,14 @@ export default class EditablePointView extends AbstractStatefulView {
     this._setState({
       ...this._state,
       dateFrom: userDate});
-      this.#datepickerTo.set('minDate', this._state.dateFrom);
+    this.#datepickerTo.set('minDate', this._state.dateFrom);
   };
 
   #dateToCloseHandler = ([userDate]) => {
     this._setState({
       ...this._state,
       dateTo: userDate});
-      this.#datepickerFrom.set('maxDate', this._state.dateTo);
+    this.#datepickerFrom.set('maxDate', this._state.dateTo);
   };
 
   #setDatepickers() {
