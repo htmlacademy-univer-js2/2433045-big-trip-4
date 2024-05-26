@@ -23,10 +23,10 @@ export default class MockService {
         if (getRandomInteger(0, 1)) {
           offersIDs.push(offer.id);}
         });
-        return generatePoint(type, offersIDs, destinationIDs);
-      });
-    }
-    get destinations() {return this.#destinations;}
-    get offers() {return this.#offers;}
-    get events() {return this.#points;}
+      return generatePoint(type, offersIDs, destinationIDs);
+    });
   }
+  get destinations() {return this.#destinations;}
+  get offers() {return this.#offers;}
+  get points() {return this.#points;}
+}

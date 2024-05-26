@@ -5,6 +5,23 @@ import { Duration, MSEC_IN_HOUR, MSEC_IN_DAY } from './const';
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
+let date = dayjs().subtract(getRandomInteger(0, Duration.DAY), 'day').toDate();
+
+function isEventFuture(event) {
+  return dayjs().isBefore(event.dateFrom);
+}
+
+function isEventPresent(event) {
+  return dayjs().isAfter(event.dateFrom) && dayjs().isBefore(event.dateTo);
+}
+
+function isEventPast(event) {
+  return dayjs().isAfter(event.dateTo);
+}
+
+function updateItem(items, update) {
+  return items.map((item) => item.id === update.id ? update : item);
+}
 
 function getRandomInteger (min, max) {
   const lower = Math.ceil(Math.min(Math.abs(min), Math.abs(max)));
@@ -26,8 +43,6 @@ function firstLetterToLowerCase(type) {
   return type.toLowerCase();
 }
 
-let date = dayjs().subtract(getRandomInteger(0, Duration.DAY), 'day').toDate();
-
 function getDate({ next }) {
   const minsGap = getRandomInteger(0, Duration.MIN);
   const hoursGap = getRandomInteger(1, Duration.HOUR);
@@ -44,9 +59,16 @@ function getDate({ next }) {
   return date;
 }
 
+function isBigDifference(event1, event2) {
+  return event1.price !== event2.price
+    || getEventDuration(event1.dateFrom, event1.dateTo) !== getEventDuration(event2.dateFrom, event2.dateTo);
+}
+
+const isEscapeKey = (evt) => evt.key === 'Escape';
 const formatStringToDateTime = (dateF) => dayjs(dateF).format('DD/MM/YY HH:mm');
 const formatStringToShortDate = (dateF) => dayjs(dateF).format('MMM DD');
 const formatStringToTime = (dateF) => dayjs(dateF).format('HH:mm');
+
 const getPointDuration = (dateFrom, dateTo) => {
   const timeDiff = dayjs(dateTo).diff(dayjs(dateFrom));
 
@@ -58,21 +80,27 @@ const getPointDuration = (dateFrom, dateTo) => {
   return dayjs.duration(timeDiff).format('mm[M]');
 };
 
-function isEventFuture(event) {
-  return dayjs().isBefore(event.dateFrom);
-}
+const sortByTime = (event1, event2) => {
+  const time1 = dayjs(event1.dateTo).diff(dayjs(event1.dateFrom));
+  const time2 = dayjs(event2.dateTo).diff(dayjs(event2.dateFrom));
+  return time2 - time1;
+};
 
-function isEventPresent(event) {
-  return dayjs().isAfter(event.dateFrom) && dayjs().isBefore(event.dateTo);
-}
+const sortByPrice = (event1, event2) => event2.price - event1.price;
 
-function isEventPast(event) {
-  return dayjs().isAfter(event.dateTo);
-}
+const filter = {
+  [FilterType.EVERYTHING]: (events) => [...events],
+  [FilterType.FUTURE]: (events) => events.filter((event) => isEventFuture(event)),
+  [FilterType.PRESENT]: (events) => events.filter((event) => isEventPresent(event)),
+  [FilterType.PAST]: (events) => events.filter((event) => isEventPast(event)),
+};
 
-function updateItem(items, update) {
-  return items.map((item) => item.id === update.id ? update : item);
-}
+const NoEventsTextType = {
+  [FilterType.EVERYTHING]: 'Click New Event to create your first point',
+  [FilterType.PAST]: 'There are no past events now',
+  [FilterType.PRESENT]: 'There are no present events now',
+  [FilterType.FUTURE]: 'There are no future events now',
+};
 
 export {
   isEventPast,
@@ -86,4 +114,11 @@ export {
   formatStringToTime,
   getPointDuration,
   firstLetterToUpperCase,
-  firstLetterToLowerCase,updateItem};
+  firstLetterToLowerCase,
+  updateItem,
+  isEscapeKey,
+  sortByTime,
+  sortByPrice,
+  isBigDifference,
+  filter,
+  NoEventsTextType};

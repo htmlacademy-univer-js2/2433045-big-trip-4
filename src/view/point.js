@@ -1,4 +1,5 @@
 import AbstractView from '../framework/view/abstract-view.js';
+import he from 'he';
 import { formatStringToDateTime, formatStringToShortDate, formatStringToTime, getPointDuration,firstLetterToUpperCase } from '../utils.js';
 
 function createPointViewTemplate({ point, pointDestination, pointOffers }) {
@@ -12,7 +13,7 @@ function createPointViewTemplate({ point, pointDestination, pointOffers }) {
         <div class="event__type">
           <img class="event__type-icon" width="42" height="42" src="img/icons/${type}.png" alt="Event type icon">
         </div>
-        <h3 class="event__title">${firstLetterToUpperCase(type)} ${nameDestination}</h3>
+        <h3 class="event__title">${firstLetterToUpperCase(type)} ${he.encode(nameDestination)}</h3>
         <div class="event__schedule">
           <p class="event__time">
             <time class="event__start-time" datetime="${formatStringToDateTime(dateFrom)}">${formatStringToTime(dateFrom)}</time>
@@ -22,7 +23,7 @@ function createPointViewTemplate({ point, pointDestination, pointOffers }) {
           <p class="event__duration">${getPointDuration(dateFrom, dateTo)}</p>
         </div>
         <p class="event__price">
-          &euro;&nbsp;<span class="event__price-value">${price}</span>
+          &euro;&nbsp;<span class="event__price-value">${he.encode(price.toString())}</span>
         </p>
         <h4 class="visually-hidden">Offers:</h4>
         <ul class="event__selected-offers">
