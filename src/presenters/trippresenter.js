@@ -1,8 +1,8 @@
 import SortView from '../view/sort.js';
 import ListView from '../view/list.js';
 import PointPresenter from './pointpresenter.js';
-import NoPointView from '../view/nopoint.js';
 import NewPointPresenter from './newpointpresenter.js';
+import MessageView from '../view/message.js';
 import { render, RenderPosition, remove } from '../framework/render.js';
 import { SortType, UserAction, UpdateType, FilterType } from '../const.js';
 import { sortByTime, sortByPrice, filter } from '../utils.js';
@@ -21,6 +21,8 @@ export default class TripPointsPresenter {
   #newPointPresenter = null;
   #currentSortType = SortType.DAY;
   #filterType = FilterType.EVERYTHING;
+  #isLoading = true;
+  #isLoadingError = false;
 
   constructor({tripContainer, destinationsModel, offersModel, pointsModel,filterModel, onNewPointDestroy}) {
     this.#tripContainer = tripContainer;
@@ -67,8 +69,18 @@ export default class TripPointsPresenter {
   }
 
   #renderTrip() {
+    if (this.#isLoading) {
+      this.#renderMessage({isLoading: true});
+      return;
+    }
+
+    if (this.#isLoadingError) {
+      this.#renderMessage({isLoadingError: true});
+      return;
+    }
+
     if (this.points.length === 0) {
-      this.#renderNoPoints();
+      this.#renderMessage();
       return;
     }
 
@@ -111,13 +123,17 @@ export default class TripPointsPresenter {
       currentSortType: this.#currentSortType,
       onSortTypeChange: this.#handleSortTypeChange
     });
+
     render(this.#sortComponent, this.#tripContainer, RenderPosition.AFTERBEGIN);
   }
 
-  #renderNoPoints() {
-    this.#noPointComponent = new NoPointView({
-      filterType: this.#filterType
+  #renderMessage({isLoading = false, isLoadingError = false} = {}) {
+    this.#noPointComponent = new MessageView({
+      filterType: this.#filterType,
+      isLoading,
+      isLoadingError
     });
+
     render(this.#noPointComponent, this.#tripContainer, RenderPosition.AFTERBEGIN);
   }
 
@@ -140,12 +156,21 @@ export default class TripPointsPresenter {
       case UpdateType.PATCH:
         this.#pointPresenters.get(data.id).init(data);
         break;
+
       case UpdateType.MINOR:
         this.#clearTrip();
         this.#renderTrip();
         break;
+
       case UpdateType.MAJOR:
         this.#clearTrip({resetSortType: true});
+        this.#renderTrip();
+        break;
+
+      case UpdateType.INIT:
+        this.#isLoadingError = data.isError;
+        this.#isLoading = false;
+        this.#clearTrip();
         this.#renderTrip();
         break;
     }
@@ -155,9 +180,11 @@ export default class TripPointsPresenter {
     this.#newPointPresenter.destroy();
     this.#pointPresenters.forEach((presenter) => presenter.resetView());
   }
+
   #renderPoints() {
     this.points.forEach((point) => this.#renderPoint(point));
   }
+
   #renderPoint(point) {
     const pointPresenter = new PointPresenter({
       pointtListContainer: this.#listComponent,
