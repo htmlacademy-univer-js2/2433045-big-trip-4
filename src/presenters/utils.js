@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { Duration, MSEC_IN_HOUR, MSEC_IN_DAY } from './const';
+import { Duration, MSEC_IN_HOUR, MSEC_IN_DAY, FilterType } from './const';
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
@@ -23,18 +23,6 @@ function updateItem(items, update) {
   return items.map((item) => item.id === update.id ? update : item);
 }
 
-function getRandomInteger (min, max) {
-  const lower = Math.ceil(Math.min(Math.abs(min), Math.abs(max)));
-  const upper = Math.floor(Math.max(Math.abs(min), Math.abs(max)));
-  const result = Math.random() * (upper - lower + 1) + lower;
-
-  return Math.floor(result);
-}
-
-function getRandomValue(items) {
-  return items[getRandomInteger(0, items.length - 1)];
-}
-
 function firstLetterToUpperCase(type) {
   return type.charAt(0).toUpperCase() + type.slice(1);
 }
@@ -43,25 +31,43 @@ function firstLetterToLowerCase(type) {
   return type.toLowerCase();
 }
 
-function getDate({ next }) {
-  const minsGap = getRandomInteger(0, Duration.MIN);
-  const hoursGap = getRandomInteger(1, Duration.HOUR);
-  const daysGap = getRandomInteger(0, Duration.DAY);
-
-  if (next) {
-    date = dayjs(date)
-      .add(minsGap, 'minute')
-      .add(hoursGap, 'hour')
-      .add(daysGap, 'day')
-      .toDate();
-  }
-
-  return date;
-}
-
 function isBigDifference(event1, event2) {
   return event1.price !== event2.price
     || getEventDuration(event1.dateFrom, event1.dateTo) !== getEventDuration(event2.dateFrom, event2.dateTo);
+}
+
+function adaptToClient(event) {
+  const adaptedEvent = {
+    ...event,
+    price: event['base_price'],
+    dateFrom: event['date_from'] !== null ? new Date(event['date_from']) : event['date_from'],
+    dateTo: event['date_to'] !== null ? new Date(event['date_to']) : event['date_to'],
+    isFavorite: event['is_favorite']
+  };
+
+  delete adaptedEvent['base_price'];
+  delete adaptedEvent['date_from'];
+  delete adaptedEvent['date_to'];
+  delete adaptedEvent['is_favorite'];
+
+  return adaptedEvent;
+}
+
+function adaptToServer(event) {
+  const adaptedEvent = {
+    ...event,
+    ['base_price']: event.price,
+    ['date_from']: event.dateFrom instanceof Date ? event.dueDate.toISOString() : null,
+    ['date_to']: event.dateTo instanceof Date ? event.dateTo.toISOString() : null,
+    ['is_favorite']: event.isFavorite
+  };
+
+  delete adaptedEvent.price;
+  delete adaptedEvent.dateFrom;
+  delete adaptedEvent.dateTo;
+  delete adaptedEvent.isFavorite;
+
+  return adaptedEvent;
 }
 
 const isEscapeKey = (evt) => evt.key === 'Escape';
@@ -106,9 +112,6 @@ export {
   isEventPast,
   isEventPresent,
   isEventFuture,
-  getRandomInteger,
-  getRandomValue,
-  getDate,
   formatStringToDateTime,
   formatStringToShortDate,
   formatStringToTime,
@@ -121,4 +124,6 @@ export {
   sortByPrice,
   isBigDifference,
   filter,
-  NoEventsTextType};
+  NoEventsTextType,
+  adaptToClient,
+  adaptToServer};
