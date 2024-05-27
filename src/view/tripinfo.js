@@ -20,21 +20,21 @@ function createTripInfoElement({ isEmpty, title, duration, cost}) {
 export default class TripInfoView extends AbstractView {
   #destinations = null;
   #offers = null;
-  #points = 0;
+  #events = 0;
 
-  constructor({destinations, offers, points}) {
+  constructor({destinations, offers, events}) {
     super();
     this.#destinations = destinations;
     this.#offers = offers;
-    this.#points = points;
+    this.#events = events;
   }
 
   get template() {
     return createTripInfoElement({
-      isEmpty: this.#points.length === 0,
-      title: getTripTitle(this.#points, this.#destinations),
-      duration: getTripDuration(this.#points),
-      cost: getTripCost(this.#points, this.#offers),
+      isEmpty: this.#events.length === 0,
+      title: getTripTitle(this.#events, this.#destinations),
+      duration: getTripDuration(this.#events),
+      cost: getTripCost(this.#events, this.#offers),
     });
   }
 }

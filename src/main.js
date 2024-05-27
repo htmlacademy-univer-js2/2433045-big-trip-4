@@ -7,7 +7,6 @@ import PointsModel from './model/points';
 import pointApiService from './service/apiservice.js';
 import FilterModel from './model/filters.js';
 import { render, RenderPosition } from './framework/render.js';
-import TripInfoView from './view/tripinfo.js';
 
 const AUTHORIZATION = 'Basic dd89j3m2h5l';
 const END_POINT = 'https://21.objects.htmlacademy.pro/big-trip';
@@ -23,6 +22,7 @@ const tripMainContainer = document.querySelector('.trip-main');
 const tripContainer = document.querySelector('.trip-events');
 
 const routePresenter = new TripPointsPresenter({
+  tripInfoContainer: tripMainContainer,
   tripContainer,
   destinationsModel,
   offersModel,
@@ -50,7 +50,6 @@ function handleNewPointButtonClick() {
   newPointButtonComponent.element.disabled = true;
 }
 
-render(new TripInfoView(), tripMainContainer, RenderPosition.AFTERBEGIN);
 render(newPointButtonComponent, tripMainContainer, RenderPosition.BEFOREEND);
 
 routePresenter.init();
