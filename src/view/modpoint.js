@@ -1,17 +1,18 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
-import { POINT_TYPES, POINT_EMPTY,EditType, ButtonLabel } from '../const.js';
+import {POINT_EMPTY, EditType, ButtonLabel } from '../const.js';
 import flatpickr from 'flatpickr';
 import he from 'he';
 import 'flatpickr/dist/flatpickr.min.css';
 import { firstLetterToUpperCase, firstLetterToLowerCase,formatStringToDateTime } from '../utils.js';
 
-function createPointTypesListElement(currentType) {
-  return POINT_TYPES.map((type) =>
+function createPointTypesListElement(pointOffers, currentType, isDisabled) {
+  return pointOffers.map((point) =>
     `<div class="event__type-item">
-      <input id="event-type-${type}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${type}" ${currentType === type ? 'checked' : ''}>
-      <label class="event__type-label  event__type-label--${type}" for="event-type-${type}-1">${firstLetterToUpperCase(type)}</label>
+      <input id="event-type-${point.type}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${point.type}" ${currentType === point.type ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}>
+      <label class="event__type-label  event__type-label--${point.type}" for="event-type-${point.type}-1">${firstLetterToUpperCase(point.type)}</label>
     </div>`).join('');
 }
+
 function createPointDestinationListElement(pointDestination) {
   return `
     <datalist id="destination-list-1">
@@ -19,10 +20,10 @@ function createPointDestinationListElement(pointDestination) {
     </datalist>`;
 }
 
-function createPointOfferElement(offers, checkedOffers) {
+function createPointOfferElement(offers, checkedOffers, isDisabled) {
   const offerItem = offers.map((offer) => `
     <div class="event__offer-selector">
-      <input class="event__offer-checkbox  visually-hidden" id="${offer.id}" type="checkbox" name="event-offer-${firstLetterToLowerCase(offer.title)}" ${checkedOffers.includes(offer.id) ? 'checked' : ''}>
+      <input class="event__offer-checkbox  visually-hidden" id="${offer.id}" type="checkbox" name="event-offer-${firstLetterToLowerCase(offer.title)}" ${checkedOffers.includes(offer.id) ? 'checked' : ''}${isDisabled ? 'disabled' : ''}>
       <label class="event__offer-label" for="${offer.id}">
         <span class="event__offer-title">${offer.title}</span>
         &plus;&euro;&nbsp;
@@ -42,15 +43,19 @@ function createPointPhotoElement(pictures) {
 }
 
 
-function createResetButtonTemplate(pointType) {
-  const label = pointType === EditType.CREATING
-    ? ButtonLabel.CANCEL_DEFAULT
-    : ButtonLabel.DELETE_DEFAULT;
-  return `<button class="event__reset-btn" type="reset">${label}</button>`;
+function createResetButtonTemplate(pointType, isDeleting, isDisabled) {
+  let label;
+  if (pointType === EditType.CREATING) {
+    label = ButtonLabel.CANCEL_DEFAULT;
+  }
+  else {
+    label = isDeleting ? ButtonLabel.DELETE_IN_PROGRESS : ButtonLabel.DELETE_DEFAULT;
+  }
+  return `<button class="event__reset-btn" type="reset" ${isDisabled ? 'disabled' : ''}>${label}</button>`;
 }
 
 function createModPointElement({point, pointDestination, pointOffers, pointType}) {
-  const { type, offers, dateFrom, dateTo, price } = point;
+  const { type, offers, dateFrom, dateTo, price, isDisabled, isSaving, isDeleting } = point;
   const currentOffers = pointOffers.find((offer) => offer.type === type);
   const currentDestination = pointDestination.find((destination) => destination.id === point.destination);
   const nameDestination = (currentDestination) ? currentDestination.name : '';
@@ -67,7 +72,7 @@ function createModPointElement({point, pointDestination, pointOffers, pointType}
             <div class="event__type-list">
               <fieldset class="event__type-group">
                 <legend class="visually-hidden">Event type</legend>
-                ${createPointTypesListElement(type)}
+                ${createPointTypesListElement(pointOffers,type, isDisabled)}
               </fieldset>
             </div>
           </div>
@@ -75,37 +80,37 @@ function createModPointElement({point, pointDestination, pointOffers, pointType}
             <label class="event__label  event__type-output" for="event-destination-1">
               ${type}
             </label>
-            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${he.encode(nameDestination)}" list="destination-list-1">
+            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${he.encode(nameDestination)}" list="destination-list-1"${isDisabled ? 'disabled' : ''}>
             ${createPointDestinationListElement(pointDestination)}
           </div>
           <div class="event__field-group  event__field-group--time">
             <label class="visually-hidden" for="event-start-time-1">From</label>
-            <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${dateFrom ? formatStringToDateTime(dateFrom) : ''}">
+            <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${dateFrom ? formatStringToDateTime(dateFrom) : ''}"${isDisabled ? 'disabled' : ''}>
             &mdash;
             <label class="visually-hidden" for="event-end-time-1">To</label>
-            <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${dateTo ? formatStringToDateTime(dateTo) : ''}">
+            <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${dateTo ? formatStringToDateTime(dateTo) : ''}"${isDisabled ? 'disabled' : ''}>
           </div>
           <div class="event__field-group  event__field-group--price">
             <label class="event__label" for="event-price-1">
               <span class="visually-hidden">Price</span>
               &euro;
             </label>
-            <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${he.encode(price.toString())}">
+            <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${he.encode(String(price))}"${isDisabled ? 'disabled' : ''}>
           </div>
-          <button class="event__save-btn  btn  btn--blue" type="submit">${ButtonLabel.SAVE_DEFAULT}</button>
-          ${createResetButtonTemplate(pointType)}
+          <button class="event__save-btn  btn  btn--blue" type="submit" ${isDisabled ? 'disabled' : ''}>${isSaving ? ButtonLabel.SAVE_IN_PROGRESS : ButtonLabel.SAVE_DEFAULT}</button>
           ${(pointType === EditType.EDITING) ? '<button class="event__rollup-btn" type="button">' : ''}
         </header>
         <section class="event__details">
         ${(currentOffers.offers.length !== 0) ? `<section class="event__section  event__section--offers">
             <h3 class="event__section-title  event__section-title--offers">Offers</h3>
-            ${createPointOfferElement(currentOffers.offers, offers)}
+            ${createPointOfferElement(currentOffers.offers, offers, isDisabled)}
           </section>` : ''}
           </section>
-           ${(currentDestination) ? `<section class="event__section  event__section--destination">
+          ${(currentDestination) ? `${(currentDestination.description.length || currentDestination.pictures.length) ?
+            `<section class="event__section  event__section--destination">
             <h3 class="event__section-title  event__section-title--destination">Destination</h3>
             <p class="event__destination-description">${currentDestination.description}</p>
-            ${createPointPhotoElement(currentDestination.pictures)}
+            ${createPointPhotoElement(currentDestination.pictures)}` : ''}
           </section>` : ''}
         </section>
       </form>
@@ -282,10 +287,18 @@ export default class EditablePointView extends AbstractStatefulView {
   };
 
   static parsePointToState(point) {
-    return {...point};
+    return {...point,
+      isDisabled: false,
+      isSaving: false,
+      isDeleting: false,
+    };
   }
 
   static parseStateToPoint(state) {
-    return {...state};
+    const event = {...state};
+    delete event.isDisabled;
+    delete event.isSaving;
+    delete event.isDeleting;
+    return event;
   }
 }

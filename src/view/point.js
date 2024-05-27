@@ -23,7 +23,7 @@ function createPointViewTemplate({ point, pointDestination, pointOffers }) {
           <p class="event__duration">${getPointDuration(dateFrom, dateTo)}</p>
         </div>
         <p class="event__price">
-          &euro;&nbsp;<span class="event__price-value">${he.encode(price.toString())}</span>
+          &euro;&nbsp;<span class="event__price-value">${he.encode(String(price))}</span>
         </p>
         <h4 class="visually-hidden">Offers:</h4>
         <ul class="event__selected-offers">

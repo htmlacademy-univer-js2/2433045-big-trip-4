@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { MSEC_IN_HOUR, MSEC_IN_DAY, FilterType } from './const';
+import { MSEC_IN_HOUR, MSEC_IN_DAY, FilterType, SortType, DESTINATION_ITEMS_LENGTH } from './const';
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
@@ -36,6 +36,10 @@ function isBigDifference(event1, event2) {
     || getEventDuration(event1.dateFrom, event1.dateTo) !== getEventDuration(event2.dateFrom, event2.dateTo);
 }
 
+function sortByDay(event1, event2) {
+  return new Date(event1.dateFrom) - new Date(event2.dateFrom);
+}
+
 function adaptToClient(event) {
   const adaptedEvent = {
     ...event,
@@ -68,6 +72,37 @@ function adaptToServer(event) {
   delete adaptedEvent.isFavorite;
 
   return adaptedEvent;
+}
+
+function getTripTitle(events = [], destinations = []) {
+  const destinationNames = sort[SortType.DAY]([...events])
+    .map((event) => destinations.find((destination) => destination.id === event.destination).name);
+
+  return destinationNames.length <= DESTINATION_ITEMS_LENGTH
+    ? destinationNames.join('&nbsp;&mdash;&nbsp;')
+    : `${destinationNames.at(0)}&nbsp;&mdash;&nbsp;...&nbsp;&mdash;&nbsp;${destinationNames.at(-1)}`;
+}
+
+function getTripDuration(events = []) {
+  const sortedEvents = sort[SortType.DAY]([...events]);
+
+  return (sortedEvents.length > 0)
+    ? `${dayjs(sortedEvents.at(0).dateFrom).format('DD MMM')}&nbsp;&mdash;&nbsp;${dayjs(sortedEvents.at(-1).dateTo).format('DD MMM')}`
+    : '';
+}
+
+function getOffersCost(offerIds = [], offers = []) {
+  return offerIds.reduce(
+    (result, id) => result + (offers.find((offer) => offer.id === id)?.price ?? 0),
+    0
+  );
+}
+
+function getTripCost(events = [], offers = []) {
+  return events.reduce(
+    (result, event) => result + event.price + getOffersCost(event.offers, offers.find((offer) => event.type === offer.type)?.offers),
+    0
+  );
 }
 
 const isEscapeKey = (evt) => evt.key === 'Escape';
@@ -108,6 +143,18 @@ const NoEventsTextType = {
   [FilterType.FUTURE]: 'There are no future events now',
 };
 
+const sort = {
+  [SortType.DAY]: (points) => points.sort(sortByDay),
+  [SortType.PRICE]: (points) => points.sort(sortByPrice),
+  [SortType.TIME]: (points) => points.sort(sortByTime),
+  [SortType.EVENT]: () => {
+    throw new Error(`Sort by ${SortType.EVENT} is not implemented`);
+  },
+  [SortType.OFFER]: () => {
+    throw new Error(`Sort by ${SortType.OFFER} is not implemented`);
+  }
+};
+
 export {
   isEventPast,
   isEventPresent,
@@ -126,4 +173,7 @@ export {
   filter,
   NoEventsTextType,
   adaptToClient,
-  adaptToServer};
+  adaptToServer,
+  sortByDay, sort, getTripTitle,
+  getTripDuration,
+  getTripCost};
