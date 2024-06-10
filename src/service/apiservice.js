@@ -1,8 +1,8 @@
 import ApiService from '../framework/api-service.js';
 import { Method } from '../const.js';
-import { adaptToServer } from '../utils.js';
+import { adaptToServer } from '../utils/adapt.js';
 
-export default class pointApiService extends ApiService {
+export default class EventsApiService extends ApiService {
   get events() {
     return this._load({url: 'points'})
       .then(ApiService.parseResponse);
@@ -29,5 +29,27 @@ export default class pointApiService extends ApiService {
     const parsedResponse = await ApiService.parseResponse(response);
 
     return parsedResponse;
+  }
+
+  async addEvent(update) {
+    const response = await this._load({
+      url: 'points',
+      method: Method.POST,
+      body: JSON.stringify(adaptToServer(update)),
+      headers: new Headers({'Content-Type': 'application/json'}),
+    });
+
+    const parsedResponse = await ApiService.parseResponse(response);
+
+    return parsedResponse;
+  }
+
+  async deleteEvent(update) {
+    const response = await this._load({
+      url: `points/${update.id}`,
+      method: Method.DELETE,
+    });
+
+    return response;
   }
 }

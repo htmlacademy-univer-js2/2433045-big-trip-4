@@ -7,7 +7,7 @@ function createEventListViewTemplate() {
 }
 
 export default class PointListView extends AbstractView {
-  getTemplate() {
+  get template() {
     return createEventListViewTemplate();
   }
 }

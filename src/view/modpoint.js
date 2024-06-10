@@ -98,6 +98,7 @@ function createModPointElement({point, pointDestination, pointOffers, pointType}
             <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${he.encode(String(price))}"${isDisabled ? 'disabled' : ''}>
           </div>
           <button class="event__save-btn  btn  btn--blue" type="submit" ${isDisabled ? 'disabled' : ''}>${isSaving ? ButtonLabel.SAVE_IN_PROGRESS : ButtonLabel.SAVE_DEFAULT}</button>
+          ${createResetButtonTemplate(eventType, isDeleting, isDisabled)}
           ${(pointType === EditType.EDITING) ? '<button class="event__rollup-btn" type="button">' : ''}
         </header>
         <section class="event__details">

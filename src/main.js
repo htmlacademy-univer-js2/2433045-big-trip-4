@@ -8,7 +8,7 @@ import pointApiService from './service/apiservice.js';
 import FilterModel from './model/filters.js';
 import { render, RenderPosition } from './framework/render.js';
 
-const AUTHORIZATION = 'Basic dd89j3m2h5l';
+const AUTHORIZATION = 'Basic dd89j3m2h10l';
 const END_POINT = 'https://21.objects.htmlacademy.pro/big-trip';
 const apiService = new pointApiService(END_POINT, AUTHORIZATION);
 
@@ -28,7 +28,8 @@ const routePresenter = new TripPointsPresenter({
   offersModel,
   pointsModel,
   filterModel,
-  onNewPointDestroy: handleNewPointFormClose
+  onNewPointDestroy: handleNewPointFormClose,
+  onNewPointClick: handleNewPointClick,
 });
 
 const filterPresenter = new FilterPresenter({
@@ -46,12 +47,11 @@ function handleNewPointFormClose() {
 }
 
 function handleNewPointButtonClick() {
-  routePresenter.createPoint();
-  newPointButtonComponent.element.disabled = true;
+  routePresenter.createEvent();
+  handleNewPointClick();
 }
 
 render(newPointButtonComponent, tripMainContainer, RenderPosition.BEFOREEND);
-
-routePresenter.init();
 filterPresenter.init();
+routePresenter.init();
 pointsModel.init();

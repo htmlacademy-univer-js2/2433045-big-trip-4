@@ -3,7 +3,7 @@ import { getTripTitle, getTripDuration, getTripCost } from '../utils/trip-info.j
 
 function createTripInfoElement({ isEmpty, title, duration, cost}) {
   return `${isEmpty
-    ? ''
+    ? '<div></div>'
     : `
         <section class="trip-main__trip-info  trip-info">
             <div class="trip-info__main">

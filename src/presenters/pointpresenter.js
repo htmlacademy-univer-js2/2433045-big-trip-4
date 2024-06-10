@@ -1,29 +1,28 @@
 import { render, replace, remove } from '../framework/render.js';
-import { Mode } from '../const.js';
-import { isEscapeKey } from '../utils.js';
+import { isEscapeKey, isBigDifference } from '../utils.js';
 import PointView from '../view/point.js';
 import EditablePointView from '../view/modpoint.js';
-import { UserAction, UpdateType } from '../const.js';
-import { isBigDifference } from '../utils.js';
+import { UserAction, UpdateType, Mode } from '../const.js';
 
 export default class PointPresenter {
   #pointListContainer = null;
   #destinationsModel = null;
   #offersModel = null;
 
-  #onDataChange = null;
+  #handleDataChange = null;
   #point = null;
   #pointComponent = null;
   #pointEditComponent = null;
-  #onModeChange = null;
+  #handleDataChange = null;
+  #handleModeChange = null;
   #mode = Mode.DEFAULT;
 
   constructor({pointListContainer, destinationsModel, offersModel, onDataChange, onModeChange}) {
     this.#pointListContainer = pointListContainer;
     this.#destinationsModel = destinationsModel;
     this.#offersModel = offersModel;
-    this.#onDataChange = onDataChange;
-    this.#onModeChange = onModeChange;
+    this.#handleDataChange = onDataChange;
+    this.#handleModeChange = onModeChange;
   }
 
   init(point) {
@@ -107,7 +106,7 @@ export default class PointPresenter {
   #replacePointToEditor() {
     replace(this.#pointEditComponent, this.#pointComponent);
     document.addEventListener('keydown', this.#escKeyDownHandler);
-    this.#onModeChange();
+    this.#handleModeChange();
     this.#mode = Mode.EDITING;
   }
 
@@ -122,7 +121,7 @@ export default class PointPresenter {
   };
 
   #favoriteClickHandler = () => {
-    this.#onDataChange( UserAction.UPDATE_EVENT, UpdateType.PATCH, {...this.#point, isFavorite: !this.#point.isFavorite});
+    this.#handleDataChange( UserAction.UPDATE_EVENT, UpdateType.PATCH, {...this.#point, isFavorite: !this.#point.isFavorite});
   };
 
   #editorRollupClickHandler = () => {
@@ -132,7 +131,7 @@ export default class PointPresenter {
 
   #editSubmitHandler = (update) => {
     const isMinorUpdate = isBigDifference(update, this.#point);
-    this.#onDataChange(
+    this.#handleDataChange(
       UserAction.UPDATE_EVENT,
       isMinorUpdate ? UpdateType.MINOR : UpdateType.PATCH,
       update,
@@ -141,7 +140,7 @@ export default class PointPresenter {
   };
 
   #editResetHandler = (event) => {
-    this.#onDataChange(
+    this.#handleDataChange(
       UserAction.DELETE_EVENT,
       UpdateType.MINOR,
       event,
