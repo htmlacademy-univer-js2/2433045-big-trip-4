@@ -9,7 +9,6 @@ export default class PointPresenter {
   #destinationsModel = null;
   #offersModel = null;
 
-  #handleDataChange = null;
   #point = null;
   #pointComponent = null;
   #pointEditComponent = null;
