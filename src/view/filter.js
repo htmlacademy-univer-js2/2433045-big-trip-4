@@ -4,11 +4,12 @@ import { firstLetterToUpperCase } from '../utils.js';
 function createFilterItemElement(filter, currentFilter) {
   const {type, exists} = filter;
   return`
-  <div class="trip-filters__filter">
-    <input id="filter-${type}" class="trip-filters__filter-input  visually-hidden" type="radio" name="trip-filter" value="${type}" ${currentFilter === type ? 'checked' : ''} ${exists ? '' : 'disabled'}>
-    <label class="trip-filters__filter-label" for="filter-${type}">${firstLetterToUpperCase(type)}</label>
-  </div>`;
+    <div class="trip-filters__filter">
+      <input id="filter-${type}" class="trip-filters__filter-input  visually-hidden" type="radio" name="trip-filter" value="${type}" ${currentFilter === type ? 'checked' : ''} ${exists ? '' : 'disabled'}>
+      <label class="trip-filters__filter-label" for="filter-${type}">${firstLetterToUpperCase(type)}</label>
+    </div>`;
 }
+
 function createFilterElement(filterItems, currentFilter) {
   const filterItemsTemplate = filterItems.map((filter) => createFilterItemElement(filter, currentFilter)).join('');
   return `
@@ -31,7 +32,7 @@ export default class FilterView extends AbstractView {
     this.element.addEventListener('change', this.#filterTypeChangeHandler);
   }
 
-  getTemplate() {
+  get template() {
     return createFilterElement(this.#filters, this.#currentFilter);
   }
 

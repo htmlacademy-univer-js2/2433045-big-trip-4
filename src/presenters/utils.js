@@ -33,7 +33,7 @@ function firstLetterToLowerCase(type) {
 
 function isBigDifference(event1, event2) {
   return event1.price !== event2.price
-    || getEventDuration(event1.dateFrom, event1.dateTo) !== getEventDuration(event2.dateFrom, event2.dateTo);
+    || getPointDuration(event1.dateFrom, event1.dateTo) !== getPointDuration(event2.dateFrom, event2.dateTo);
 }
 
 function sortByDay(event1, event2) {
@@ -156,24 +156,24 @@ const sort = {
 };
 
 export {
-  isEventPast,
-  isEventPresent,
-  isEventFuture,
-  formatStringToDateTime,
-  formatStringToShortDate,
-  formatStringToTime,
-  getPointDuration,
+  adaptToClient,
+  adaptToServer,
   firstLetterToUpperCase,
   firstLetterToLowerCase,
   updateItem,
   isEscapeKey,
+  formatStringToDateTime,
+  formatStringToShortDate,
+  formatStringToTime,
+  getPointDuration,
+  sortByDay,
   sortByTime,
   sortByPrice,
   isBigDifference,
   filter,
   NoEventsTextType,
-  adaptToClient,
-  adaptToServer,
-  sortByDay, sort, getTripTitle,
+  sort,
+  getTripTitle,
   getTripDuration,
-  getTripCost};
+  getTripCost
+  };

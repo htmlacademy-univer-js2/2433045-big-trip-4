@@ -39,20 +39,17 @@ function createPointViewTemplate({ point, pointDestination, pointOffers }) {
           <span class="visually-hidden">Open event</span>
         </button>
       </div>
-    </li>
-  `;
+    </li>`;
 }
 
 function createOffersTemplate({ offers, pointOffers }) {
-  const selectedOffers = pointOffers.filter((offer) => offers.includes(offer.id));
-  return selectedOffers.reduce((result, current) =>
-    `${result}
-      <li class="event__offer">
-        <span class="event__offer-title">${current.title}</span>
-        &plus;&euro;&nbsp;
-        <span class="event__offer-price">${current.price}</span>
-      </li>
-    `, '');
+  const offerItem = offers.map((offers) => pointOffers.includes(offers.id) ? `
+    <li class="event__offer">
+      <span class="event__offer-title">${offers.title}</span>
+      &plus;&euro;&nbsp;
+      <span class="event__offer-price">${offers.price}</span>
+    </li>` : '').join('');
+  return `<ul class="event__selected-offers">${offerItem}</ul>`;
 }
 
 export default class PointView extends AbstractView {
@@ -61,6 +58,7 @@ export default class PointView extends AbstractView {
   #offers = null;
   #onRollupClick = null;
   #onFavoriteClick = null;
+
   constructor({ point, pointDestination, pointOffers, onRollupClick,onFavoriteClick }) {
     super();
     this.#point = point;
@@ -75,7 +73,7 @@ export default class PointView extends AbstractView {
       .addEventListener('click', this.#favoriteClickHandler);
   }
 
-  getTemplate() {
+  get Template() {
     return createPointViewTemplate({
       point: this.#point,
       pointDestination: this.#destination,

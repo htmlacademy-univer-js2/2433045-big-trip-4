@@ -1,4 +1,3 @@
-const TYPES = ['taxi','bus','train','ship','drive','flight','check-in','sightseeing','restaurant'];
 const DEFAULT_TYPE = 'flight';
 const DESTINATION_ITEMS_LENGTH = 3;
 
@@ -86,7 +85,6 @@ export {
   UpdateType,
   Mode,
   FilterType,
-  TYPES,
   POINT_EMPTY,
   MSEC_IN_HOUR,
   MSEC_IN_DAY, DESTINATION_ITEMS_LENGTH, SortType};

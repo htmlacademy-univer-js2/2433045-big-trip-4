@@ -1,7 +1,7 @@
 import { render, replace, remove } from '../framework/render.js';
 import FilterView from '../view/filter.js';
 import { filter } from '../utils.js';
-import { UpdateType } from '../const';
+import { UpdateType, FilterType} from '../const';
 
 export default class FilterPresenter {
   #filterContainer = null;
@@ -25,7 +25,7 @@ export default class FilterPresenter {
     return Object.entries(filter).map(
       ([filterType, filterPoints]) => ({
         type: filterType,
-        exists: filterPoints(points).length > 0
+        exists: filterType === FilterType.EVERYTHING ? true : filterPoints(points).length > 0
       })
     );
   }
