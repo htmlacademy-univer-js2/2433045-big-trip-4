@@ -29,7 +29,7 @@ const routePresenter = new TripPointsPresenter({
   pointsModel,
   filterModel,
   onNewPointDestroy: handleNewPointFormClose,
-  onNewPointClick: handleNewPointClick,
+  onNewPointClick: handleNewPointButtonClick,
 });
 
 const filterPresenter = new FilterPresenter({
@@ -48,7 +48,7 @@ function handleNewPointFormClose() {
 
 function handleNewPointButtonClick() {
   routePresenter.createEvent();
-  handleNewPointClick();
+  handleNewPointButtonClick();
 }
 
 render(newPointButtonComponent, tripMainContainer, RenderPosition.BEFOREEND);

@@ -31,6 +31,17 @@ function firstLetterToLowerCase(type) {
   return type.toLowerCase();
 }
 
+const getPointDuration = (dateFrom, dateTo) => {
+  const timeDiff = dayjs(dateTo).diff(dayjs(dateFrom));
+
+  if (timeDiff >= MSEC_IN_DAY) {
+    return dayjs.duration(timeDiff).format('DD[D] HH[H] mm[M]');
+  } else if (timeDiff >= MSEC_IN_HOUR) {
+    return dayjs.duration(timeDiff).format('HH[H] mm[M]');
+  }
+  return dayjs.duration(timeDiff).format('mm[M]');
+}
+
 function isBigDifference(event1, event2) {
   return event1.price !== event2.price
     || getPointDuration(event1.dateFrom, event1.dateTo) !== getPointDuration(event2.dateFrom, event2.dateTo);
@@ -74,6 +85,18 @@ function adaptToServer(event) {
   return adaptedEvent;
 }
 
+const sort = {
+  [SortType.DAY]: (points) => points.sort(sortByDay),
+  [SortType.PRICE]: (points) => points.sort(sortByPrice),
+  [SortType.TIME]: (points) => points.sort(sortByTime),
+  [SortType.EVENT]: () => {
+    throw new Error(`Sort by ${SortType.EVENT} is not implemented`);
+  },
+  [SortType.OFFER]: () => {
+    throw new Error(`Sort by ${SortType.OFFER} is not implemented`);
+  }
+};
+
 function getTripTitle(events = [], destinations = []) {
   const destinationNames = sort[SortType.DAY]([...events])
     .map((event) => destinations.find((destination) => destination.id === event.destination).name);
@@ -110,17 +133,6 @@ const formatStringToDateTime = (dateF) => dayjs(dateF).format('DD/MM/YY HH:mm');
 const formatStringToShortDate = (dateF) => dayjs(dateF).format('MMM DD');
 const formatStringToTime = (dateF) => dayjs(dateF).format('HH:mm');
 
-const getPointDuration = (dateFrom, dateTo) => {
-  const timeDiff = dayjs(dateTo).diff(dayjs(dateFrom));
-
-  if (timeDiff >= MSEC_IN_DAY) {
-    return dayjs.duration(timeDiff).format('DD[D] HH[H] mm[M]');
-  } else if (timeDiff >= MSEC_IN_HOUR) {
-    return dayjs.duration(timeDiff).format('HH[H] mm[M]');
-  }
-  return dayjs.duration(timeDiff).format('mm[M]');
-};
-
 const sortByTime = (event1, event2) => {
   const time1 = dayjs(event1.dateTo).diff(dayjs(event1.dateFrom));
   const time2 = dayjs(event2.dateTo).diff(dayjs(event2.dateFrom));
@@ -141,18 +153,6 @@ const NoEventsTextType = {
   [FilterType.PAST]: 'There are no past events now',
   [FilterType.PRESENT]: 'There are no present events now',
   [FilterType.FUTURE]: 'There are no future events now',
-};
-
-const sort = {
-  [SortType.DAY]: (points) => points.sort(sortByDay),
-  [SortType.PRICE]: (points) => points.sort(sortByPrice),
-  [SortType.TIME]: (points) => points.sort(sortByTime),
-  [SortType.EVENT]: () => {
-    throw new Error(`Sort by ${SortType.EVENT} is not implemented`);
-  },
-  [SortType.OFFER]: () => {
-    throw new Error(`Sort by ${SortType.OFFER} is not implemented`);
-  }
 };
 
 export {
@@ -176,4 +176,4 @@ export {
   getTripTitle,
   getTripDuration,
   getTripCost
-  };
+};

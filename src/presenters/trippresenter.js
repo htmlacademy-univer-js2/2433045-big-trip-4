@@ -179,7 +179,7 @@ export default class TripPointsPresenter {
         }
         catch(err) {
           this.#pointPresenters.get(update.id).setAborting();
-        };
+        }
         break;
     }
     this.#uiBlocker.unblock();

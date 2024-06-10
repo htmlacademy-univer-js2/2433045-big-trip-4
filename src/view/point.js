@@ -43,11 +43,11 @@ function createPointViewTemplate({ point, pointDestination, pointOffers }) {
 }
 
 function createOffersTemplate({ offers, pointOffers }) {
-  const offerItem = offers.map((offers) => pointOffers.includes(offers.id) ? `
+  const offerItem = offers.map((offer) => pointOffers.includes(offer.id) ? `
     <li class="event__offer">
-      <span class="event__offer-title">${offers.title}</span>
+      <span class="event__offer-title">${offer.title}</span>
       &plus;&euro;&nbsp;
-      <span class="event__offer-price">${offers.price}</span>
+      <span class="event__offer-price">${offer.price}</span>
     </li>` : '').join('');
   return `<ul class="event__selected-offers">${offerItem}</ul>`;
 }
