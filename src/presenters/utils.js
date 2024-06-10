@@ -6,6 +6,32 @@ import { MSEC_IN_HOUR, MSEC_IN_DAY, FilterType, SortType, DESTINATION_ITEMS_LENG
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
 
+const isEscapeKey = (evt) => evt.key === 'Escape';
+const formatStringToDateTime = (dateF) => dayjs(dateF).format('DD/MM/YY HH:mm');
+const formatStringToShortDate = (dateF) => dayjs(dateF).format('MMM DD');
+const formatStringToTime = (dateF) => dayjs(dateF).format('HH:mm');
+
+const sortByTime = (event1, event2) => {
+  const time1 = dayjs(event1.dateTo).diff(dayjs(event1.dateFrom));
+  const time2 = dayjs(event2.dateTo).diff(dayjs(event2.dateFrom));
+  return time2 - time1;
+};
+
+const sortByPrice = (event1, event2) => event2.price - event1.price;
+
+const filter = {
+  [FilterType.EVERYTHING]: (events) => [...events],
+  [FilterType.FUTURE]: (events) => events.filter((event) => isEventFuture(event)),
+  [FilterType.PRESENT]: (events) => events.filter((event) => isEventPresent(event)),
+  [FilterType.PAST]: (events) => events.filter((event) => isEventPast(event)),
+};
+
+const NoEventsTextType = {
+  [FilterType.EVERYTHING]: 'Click New Event to create your first point',
+  [FilterType.PAST]: 'There are no past events now',
+  [FilterType.PRESENT]: 'There are no present events now',
+  [FilterType.FUTURE]: 'There are no future events now',
+};
 
 function isEventFuture(event) {
   return dayjs().isBefore(event.dateFrom);
@@ -40,7 +66,7 @@ const getPointDuration = (dateFrom, dateTo) => {
     return dayjs.duration(timeDiff).format('HH[H] mm[M]');
   }
   return dayjs.duration(timeDiff).format('mm[M]');
-}
+};
 
 function isBigDifference(event1, event2) {
   return event1.price !== event2.price
@@ -127,33 +153,6 @@ function getTripCost(events = [], offers = []) {
     0
   );
 }
-
-const isEscapeKey = (evt) => evt.key === 'Escape';
-const formatStringToDateTime = (dateF) => dayjs(dateF).format('DD/MM/YY HH:mm');
-const formatStringToShortDate = (dateF) => dayjs(dateF).format('MMM DD');
-const formatStringToTime = (dateF) => dayjs(dateF).format('HH:mm');
-
-const sortByTime = (event1, event2) => {
-  const time1 = dayjs(event1.dateTo).diff(dayjs(event1.dateFrom));
-  const time2 = dayjs(event2.dateTo).diff(dayjs(event2.dateFrom));
-  return time2 - time1;
-};
-
-const sortByPrice = (event1, event2) => event2.price - event1.price;
-
-const filter = {
-  [FilterType.EVERYTHING]: (events) => [...events],
-  [FilterType.FUTURE]: (events) => events.filter((event) => isEventFuture(event)),
-  [FilterType.PRESENT]: (events) => events.filter((event) => isEventPresent(event)),
-  [FilterType.PAST]: (events) => events.filter((event) => isEventPast(event)),
-};
-
-const NoEventsTextType = {
-  [FilterType.EVERYTHING]: 'Click New Event to create your first point',
-  [FilterType.PAST]: 'There are no past events now',
-  [FilterType.PRESENT]: 'There are no present events now',
-  [FilterType.FUTURE]: 'There are no future events now',
-};
 
 export {
   adaptToClient,
