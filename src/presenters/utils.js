@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { MSEC_IN_HOUR, MSEC_IN_DAY, FilterType, SortType, DESTINATION_ITEMS_LENGTH } from './const';
+import { MSEC_IN_HOUR, MSEC_IN_DAY, FilterType, SortType, DESTINATION_ITEMS_LENGTH } from '../const.js';
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
