@@ -1,12 +1,22 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import he from 'he';
-import { formatStringToDateTime, formatStringToShortDate, formatStringToTime, getPointDuration,firstLetterToUpperCase } from '../utils.js';
+import { formatStringToDateTime, formatStringToShortDate, formatStringToTime, getPointDuration,firstLetterToUpperCase } from '../presenters/utils.js';
 
-function createPointViewTemplate({ point, pointDestination, pointOffers }) {
-  const { type, offers, dateFrom, dateTo, price, isFavorite } = point;
+function createCheckedOffersElement(offers, checkedOffers) {
+  const offerItem = offers.map((offer) => checkedOffers.includes(offer.id) ? `
+    <li class="event__offer">
+      <span class="event__offer-title">${offer.title}</span>
+      &plus;&euro;&nbsp;
+      <span class="event__offer-price">${offer.price}</span>
+    </li>` : '').join('');
+  return `<ul class="event__selected-offers">${offerItem}</ul>`;
+}
+
+function createEventElement({event, eventDestination, eventOffers}) {
+  const { type, offers, dateFrom, dateTo, price, isFavorite } = event;
   const favoriteClassName = isFavorite ? 'event__favorite-btn--active' : '';
-  const nameDestination = (pointDestination) ? pointDestination.name : '';
-  return /* html */ `
+  const nameDestination = (eventDestination) ? eventDestination.name : '';
+  return `
     <li class="trip-events__item">
       <div class="event">
         <time class="event__date" datetime="${formatStringToDateTime(dateFrom)}">${formatStringToShortDate(dateFrom)}</time>
@@ -26,9 +36,7 @@ function createPointViewTemplate({ point, pointDestination, pointOffers }) {
           &euro;&nbsp;<span class="event__price-value">${he.encode(String(price))}</span>
         </p>
         <h4 class="visually-hidden">Offers:</h4>
-        <ul class="event__selected-offers">
-          ${createOffersTemplate({ offers, pointOffers })}
-        </ul>
+        ${createCheckedOffersElement(eventOffers.offers, offers)}
         <button class="event__favorite-btn ${favoriteClassName}" type="button">
           <span class="visually-hidden">Add to favorite</span>
           <svg class="event__favorite-icon" width="28" height="28" viewBox="0 0 28 28">
@@ -42,30 +50,20 @@ function createPointViewTemplate({ point, pointDestination, pointOffers }) {
     </li>`;
 }
 
-function createOffersTemplate({ offers, pointOffers }) {
-  const offerItem = offers.map((offer) => pointOffers.includes(offer.id) ? `
-    <li class="event__offer">
-      <span class="event__offer-title">${offer.title}</span>
-      &plus;&euro;&nbsp;
-      <span class="event__offer-price">${offer.price}</span>
-    </li>` : '').join('');
-  return `<ul class="event__selected-offers">${offerItem}</ul>`;
-}
-
 export default class PointView extends AbstractView {
-  #point = null;
-  #destination = null;
-  #offers = null;
-  #onRollupClick = null;
-  #onFavoriteClick = null;
+  #event = null;
+  #eventDestination = null;
+  #eventOffers = null;
+  #handleRollupClick = null;
+  #handleFavoriteClick = null;
 
-  constructor({ point, pointDestination, pointOffers, onRollupClick,onFavoriteClick }) {
+  constructor({event, eventDestination, eventOffers, onRollupClick, onFavoriteClick}) {
     super();
-    this.#point = point;
-    this.#destination = pointDestination;
-    this.#offers = pointOffers.offers;
-    this.#onRollupClick = onRollupClick;
-    this.#onFavoriteClick = onFavoriteClick;
+    this.#event = event;
+    this.#eventDestination = eventDestination;
+    this.#eventOffers = eventOffers;
+    this.#handleRollupClick = onRollupClick;
+    this.#handleFavoriteClick = onFavoriteClick;
 
     this.element.querySelector('.event__rollup-btn')
       .addEventListener('click', this.#rollupClickHandler);
@@ -73,21 +71,21 @@ export default class PointView extends AbstractView {
       .addEventListener('click', this.#favoriteClickHandler);
   }
 
-  get Template() {
-    return createPointViewTemplate({
-      point: this.#point,
-      pointDestination: this.#destination,
-      pointOffers: this.#offers
+  get template() {
+    return createEventElement({
+      event: this.#event,
+      eventDestination: this.#eventDestination,
+      eventOffers: this.#eventOffers
     });
   }
 
   #rollupClickHandler = (evt) => {
     evt.preventDefault();
-    this.#onRollupClick();
+    this.#handleRollupClick();
   };
 
   #favoriteClickHandler = (evt) => {
     evt.preventDefault();
-    this.#onFavoriteClick();
+    this.#handleFavoriteClick();
   };
 }

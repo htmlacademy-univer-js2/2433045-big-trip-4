@@ -1,5 +1,5 @@
 import AbstractView from '../framework/view/abstract-view.js';
-import { NoEventsTextType } from '../utils/filter.js';
+import { NoEventsTextType } from '../presenters/utils.js';
 
 function createMessageElement(filterType) {
   return `<p class="trip-events__msg">${NoEventsTextType[filterType]}</p>`;

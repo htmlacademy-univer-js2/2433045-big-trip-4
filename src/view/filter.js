@@ -1,9 +1,9 @@
 import AbstractView from '../framework/view/abstract-view.js';
-import { firstLetterToUpperCase } from '../utils.js';
+import { firstLetterToUpperCase } from '../presenters/utils.js';
 
 function createFilterItemElement(filter, currentFilter) {
   const {type, exists} = filter;
-  return`
+  return `
     <div class="trip-filters__filter">
       <input id="filter-${type}" class="trip-filters__filter-input  visually-hidden" type="radio" name="trip-filter" value="${type}" ${currentFilter === type ? 'checked' : ''} ${exists ? '' : 'disabled'}>
       <label class="trip-filters__filter-label" for="filter-${type}">${firstLetterToUpperCase(type)}</label>
@@ -22,13 +22,14 @@ function createFilterElement(filterItems, currentFilter) {
 export default class FilterView extends AbstractView {
   #filters = [];
   #currentFilter = null;
-  #onFilterTypeChange = null;
+  #handleFilterTypeChange = null;
 
   constructor({filters, currentFilterType, onFilterTypeChange}) {
     super();
     this.#filters = filters;
     this.#currentFilter = currentFilterType;
-    this.#onFilterTypeChange = onFilterTypeChange;
+    this.#handleFilterTypeChange = onFilterTypeChange;
+
     this.element.addEventListener('change', this.#filterTypeChangeHandler);
   }
 
@@ -38,6 +39,6 @@ export default class FilterView extends AbstractView {
 
   #filterTypeChangeHandler = (evt) => {
     evt.preventDefault();
-    this.#onFilterTypeChange(evt.target.value);
+    this.#handleFilterTypeChange(evt.target.value);
   };
 }

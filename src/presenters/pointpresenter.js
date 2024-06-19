@@ -1,80 +1,86 @@
 import { render, replace, remove } from '../framework/render.js';
-import { isEscapeKey, isBigDifference } from '../utils.js';
+import { isEscapeKey, isBigDifference } from './utils.js';
 import PointView from '../view/point.js';
 import EditablePointView from '../view/modpoint.js';
 import { UserAction, UpdateType, Mode } from '../const.js';
 
 export default class PointPresenter {
-  #pointListContainer = null;
+  #eventListContainer = null;
   #destinationsModel = null;
   #offersModel = null;
 
-  #point = null;
-  #pointComponent = null;
-  #pointEditComponent = null;
+  #event = null;
+  #eventComponent = null;
+  #eventEditComponent = null;
   #handleDataChange = null;
   #handleModeChange = null;
   #mode = Mode.DEFAULT;
 
-  constructor({pointListContainer, destinationsModel, offersModel, onDataChange, onModeChange}) {
-    this.#pointListContainer = pointListContainer;
+  constructor({eventListContainer, destinationsModel, offersModel, onDataChange, onModeChange}) {
+    this.#eventListContainer = eventListContainer;
     this.#destinationsModel = destinationsModel;
     this.#offersModel = offersModel;
     this.#handleDataChange = onDataChange;
     this.#handleModeChange = onModeChange;
   }
 
-  init(point) {
-    this.#point = point;
+  init(event) {
+    this.#event = event;
 
-    const prevPointComponent = this.#pointComponent;
-    const prevPointEditComponent = this.#pointEditComponent;
+    const prevEventComponent = this.#eventComponent;
+    const prevEventEditComponent = this.#eventEditComponent;
 
-    this.#pointComponent = new PointView({
-      point: this.#point,
-      pointDestination: this.#destinationsModel.getById(point.destination),
-      pointOffers: this.#offersModel.getByType(point.type),
-      onRollupClick: this.#pointRollupClickHandler,
+    this.#eventComponent = new PointView({
+      event: this.#event,
+      eventDestination: this.#destinationsModel.getById(event.destination),
+      eventOffers: this.#offersModel.getByType(event.type),
+      onRollupClick: this.#eventRollupClickHandler,
       onFavoriteClick: this.#favoriteClickHandler,
     });
 
-    this.#pointEditComponent = new EditablePointView ({
-      point: this.#point,
-      pointDestination: this.#destinationsModel.get(),
-      pointOffers: this.#offersModel.get(),
+    this.#eventEditComponent = new EditablePointView({
+      event: this.#event,
+      eventDestination: this.#destinationsModel.get(),
+      eventOffers: this.#offersModel.get(),
       onEditSubmit: this.#editSubmitHandler,
       onEditReset: this.#editResetHandler,
       onRollupClick: this.#editorRollupClickHandler,
     });
 
-    if (prevPointComponent === null || prevPointEditComponent === null) {
-      render(this.#pointComponent, this.#pointListContainer.element);
+
+    if (prevEventComponent === null || prevEventEditComponent === null) {
+      render(this.#eventComponent, this.#eventListContainer.element);
       return;
     }
 
     if (this.#mode === Mode.DEFAULT) {
-      replace(this.#pointComponent, prevPointComponent);
+      replace(this.#eventComponent, prevEventComponent);
     }
 
     if (this.#mode === Mode.EDITING) {
-      replace(this.#pointComponent, prevPointEditComponent);
+      replace(this.#eventComponent, prevEventEditComponent);
       this.#mode = Mode.DEFAULT;
     }
 
-    remove(prevPointComponent);
-    remove(prevPointEditComponent);
+    remove(prevEventComponent);
+    remove(prevEventEditComponent);
   }
 
   resetView() {
     if (this.#mode !== Mode.DEFAULT) {
-      this.#pointEditComponent.reset(this.#point);
-      this.#replaceEditorToPoint();
+      this.#eventEditComponent.reset(this.#event);
+      this.#replaceEditorToEvent();
     }
+  }
+
+  destroy() {
+    remove(this.#eventComponent);
+    remove(this.#eventEditComponent);
   }
 
   setSaving() {
     if (this.#mode === Mode.EDITING) {
-      this.#pointEditComponent.updateElement({
+      this.#eventEditComponent.updateElement({
         isDisabled: true,
         isSaving: true,
       });
@@ -83,7 +89,7 @@ export default class PointPresenter {
 
   setDeleting() {
     if (this.#mode === Mode.EDITING) {
-      this.#pointEditComponent.updateElement({
+      this.#eventEditComponent.updateElement({
         isDisabled: true,
         isDeleting: true,
       });
@@ -92,50 +98,53 @@ export default class PointPresenter {
 
   setAborting() {
     const resetFormState = () => {
-      this.#pointEditComponent.updateElement({
+      this.#eventEditComponent.updateElement({
         isDisabled: false,
         isSaving: false,
         isDeleting: false,
       });
     };
 
-    this.#pointEditComponent.shake(resetFormState);
+    this.#eventEditComponent.shake(resetFormState);
   }
 
-  #replacePointToEditor() {
-    replace(this.#pointEditComponent, this.#pointComponent);
+  #replaceEventToEditor() {
+    replace(this.#eventEditComponent, this.#eventComponent);
     document.addEventListener('keydown', this.#escKeyDownHandler);
     this.#handleModeChange();
     this.#mode = Mode.EDITING;
   }
 
-  #replaceEditorToPoint() {
-    replace(this.#pointComponent, this.#pointEditComponent);
+  #replaceEditorToEvent() {
+    replace(this.#eventComponent, this.#eventEditComponent);
     document.removeEventListener('keydown', this.#escKeyDownHandler);
     this.#mode = Mode.DEFAULT;
   }
 
-  #pointRollupClickHandler = () => {
-    this.#replacePointToEditor();
+  #favoriteClickHandler = () => {
+    this.#handleDataChange(
+      UserAction.UPDATE_EVENT,
+      UpdateType.PATCH,
+      {...this.#event, isFavorite: !this.#event.isFavorite},
+    );
   };
 
-  #favoriteClickHandler = () => {
-    this.#handleDataChange( UserAction.UPDATE_EVENT, UpdateType.PATCH, {...this.#point, isFavorite: !this.#point.isFavorite});
+  #eventRollupClickHandler = () => {
+    this.#replaceEventToEditor();
   };
 
   #editorRollupClickHandler = () => {
-    this.#pointEditComponent.reset(this.#point);
-    this.#replaceEditorToPoint();
+    this.#eventEditComponent.reset(this.#event);
+    this.#replaceEditorToEvent();
   };
 
   #editSubmitHandler = (update) => {
-    const isMinorUpdate = isBigDifference(update, this.#point);
+    const isMinorUpdate = isBigDifference(update, this.#event);
     this.#handleDataChange(
       UserAction.UPDATE_EVENT,
       isMinorUpdate ? UpdateType.MINOR : UpdateType.PATCH,
       update,
     );
-    this.#replaceEditorToPoint();
   };
 
   #editResetHandler = (event) => {
@@ -149,8 +158,8 @@ export default class PointPresenter {
   #escKeyDownHandler = (evt) => {
     if (isEscapeKey(evt)) {
       evt.preventDefault();
-      this.#pointEditComponent.reset(this.#point);
-      this.#replaceEditorToPoint();
+      this.#eventEditComponent.reset(this.#event);
+      this.#replaceEditorToEvent();
     }
   };
 }

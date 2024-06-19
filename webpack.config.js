@@ -30,21 +30,21 @@ module.exports = {
         exclude: /node_modules/, // не применять загрузчик к файлам в папке node_modules
         use: {
           loader: 'babel-loader',
-          options: {
-            presets: ['@babel/preset-env']
-          }
+          //options: {
+            //presets: ['@babel/preset-env']
+          //}
         }
       }
     ]
   },
 
-  devtool: 'source-map', // Здесь задаем создание карт 
+  devtool: 'source-map', // Здесь задаем создание карт
   module: {
     rules: [{
       test: /\.js$/,
       use: {
         loader: 'babel-loader',
-        options: { sourceMaps: true } // Командуем Babel создавать карты 
+        options: { sourceMaps: true } // Командуем Babel создавать карты
       }
     }]},
 
